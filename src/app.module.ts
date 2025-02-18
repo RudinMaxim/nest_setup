@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { LoggerModule } from './shared/logger/logger.module';
 import { TerminusModule } from '@nestjs/terminus';
+import { PrismaModule } from './infrastructure/prisma/prisma.module';
 
 @Module({
     imports: [
@@ -22,7 +23,7 @@ import { TerminusModule } from '@nestjs/terminus';
         }),
         TerminusModule,
         LoggerModule,
-        // PrismaModule,
+        PrismaModule,
     ],
 })
 export class AppModule {}
