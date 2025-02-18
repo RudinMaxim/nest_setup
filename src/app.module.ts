@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { LoggerModule } from './shared/logger/logger.module';
-import { PrismaModule } from './infrastructure/prisma/prisma.module';
+import { TerminusModule } from '@nestjs/terminus';
 
 @Module({
     imports: [
@@ -9,8 +10,19 @@ import { PrismaModule } from './infrastructure/prisma/prisma.module';
             isGlobal: true,
             envFilePath: '.env',
         }),
+        ThrottlerModule.forRootAsync({
+            imports: [ConfigModule],
+            inject: [ConfigService],
+            useFactory: (config: ConfigService) => [
+                {
+                    ttl: config.get('RATE_LIMIT_TTL', 60000),
+                    limit: config.get('RATE_LIMIT_MAX', 100),
+                },
+            ],
+        }),
+        TerminusModule,
         LoggerModule,
-        PrismaModule,
+        // PrismaModule,
     ],
 })
 export class AppModule {}
