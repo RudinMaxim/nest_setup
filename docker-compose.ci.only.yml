@@ -1,0 +1,50 @@
+version: '3.8'
+
+networks:
+    web:
+        external: true
+    internal:
+        external: false
+
+services:
+    hrm-backend:
+        image: '${CI_REGISTRY_IMAGE}/hrm-back:${CI_COMMIT_SHORT_SHA}'
+        restart: unless-stopped
+        networks:
+            - web
+            - internal
+        env_file:
+            - '${APP_ENV_FILE}'
+        volumes:
+            - app_uploads:/usr/src/app/uploads
+        labels:
+            - 'traefik.enable=true'
+            - 'traefik.http.routers.${CI_ENVIRONMENT_SLUG}_hrm_back.entrypoints=websecure'
+            - 'traefik.http.routers.${CI_ENVIRONMENT_SLUG}_hrm_back.rule=Host(`${CI_ENVIRONMENT_SLUG}.hrm-back.docker.only.com.ru`)'
+            - 'traefik.http.routers.${CI_ENVIRONMENT_SLUG}_hrm_back.tls=true'
+            - 'traefik.http.routers.${CI_ENVIRONMENT_SLUG}_hrm_back.tls.certresolver=letsEncrypt'
+            # - "traefik.http.routers.${CI_ENVIRONMENT_SLUG}_hrm_back.middlewares=default-only-auth"
+            - 'traefik.http.services.${CI_ENVIRONMENT_SLUG}_hrm_back-service.loadbalancer.server.port=3000'
+
+    postgres:
+        image: postgres:14.7
+        env_file:
+            - '${APP_ENV_FILE}'
+        networks:
+            - internal
+        volumes:
+            - pg_data:/var/lib/postgresql/data
+        # healthcheck:
+        #     test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+        #     interval: 10s
+        #     timeout: 5s
+        #     retries: 5
+        #     start_period: 10s
+        #    ports:
+        #      - "5432:5432"
+
+volumes:
+    pg_data:
+        name: ${CI_ENVIRONMENT_SLUG}_${CI_PROJECT_NAME}_mysql
+    app_uploads:
+        name: ${CI_ENVIRONMENT_SLUG}_${CI_PROJECT_NAME}_app_uploads

@@ -1,0 +1,66 @@
+services:
+    hrm-backend:
+        build:
+            context: .
+            dockerfile: Dockerfile.local
+        volumes:
+            - ./src:/usr/src/app/src
+            - ./package.json:/usr/src/app/package.json
+            - ./package-lock.json:/usr/src/app/package-lock.json
+            - app_uploads:/usr/src/app/uploads
+        ports:
+            - '3000:3000'
+        environment:
+            - NODE_ENV=development
+            - POSTGRES_HOST=postgres
+            - POSTGRES_PORT=5432
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=postgres
+            - POSTGRES_DB=only-hrm
+            - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/only-hrm?schema=public
+        networks:
+            - internal
+        depends_on:
+            - postgres
+        restart: unless-stopped
+    postgres:
+        image: postgres:latest
+        ports:
+            - '6500:5432'
+        environment:
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=postgres
+            - POSTGRES_DB=only-hrm
+        volumes:
+            - pg_data:/var/lib/postgresql/data
+            - ./src/database/init:/docker-entrypoint-initdb.d
+        networks:
+            - internal
+        restart: unless-stopped
+
+    pgadmin:
+        image: dpage/pgadmin4:latest
+        ports:
+            - '5050:80'
+        volumes:
+            - pgadmin_data:/var/lib/pgadmin
+            - ./pgadmin-servers.json:/pgadmin4/servers.json
+        environment:
+            - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+            - PGADMIN_DEFAULT_PASSWORD=admin
+            - PGADMIN_CONFIG_SERVER_MODE=False
+            - PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED=False
+        networks:
+            - internal
+        depends_on:
+            - postgres
+        restart: unless-stopped
+
+networks:
+    internal:
+        driver: bridge
+
+volumes:
+    pg_data:
+    app_uploads:
+    pgadmin_data:

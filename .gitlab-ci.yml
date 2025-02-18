@@ -1,0 +1,115 @@
+# image: $CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX/docker:20.10.23
+
+# variables:
+#     DOCKER_BUILDKIT: 1
+
+# stages:
+#     - build
+#     - push
+#     - deploy
+
+# .base:
+#     image: docker:24.0.5
+#     services:
+#         - docker:24.0.5-dind
+#     variables:
+#         DOCKER_HOST: tcp://docker:2376
+#         DOCKER_TLS_CERTDIR: '/certs'
+#         DOCKER_TLS_VERIFY: 1
+#         DOCKER_CERT_PATH: '$DOCKER_TLS_CERTDIR/client'
+#     before_script:
+#         - |-
+#             timeout=30
+#             passed=0
+#             echo "Waiting for docker daemon to be fully started"
+#             until [ -f "${DOCKER_CERT_PATH}/ca.pem" ] || [ ${timeout} -lt ${passed} ]; do
+#               echo -n "."
+#               passed=`expr $passed + 1`
+#               sleep 1
+#             done
+
+#         - docker --version
+#         - echo -n $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
+
+# build:
+#     extends: .base
+#     stage: build
+#     script:
+#         - >
+#             docker build
+#             --progress plain
+#             --cache-from $CI_REGISTRY_IMAGE/hrm-back:$CI_COMMIT_REF_NAME
+#             --build-arg BUILDKIT_INLINE_CACHE=1
+#             --label "org.opencontainers.image.title=$CI_PROJECT_TITLE"
+#             --label "org.opencontainers.image.url=$CI_PROJECT_URL"
+#             --label "org.opencontainers.image.created=$CI_JOB_STARTED_AT"
+#             --label "org.opencontainers.image.revision=$CI_COMMIT_SHORT_SHA"
+#             --label "org.opencontainers.image.version=$CI_COMMIT_REF_NAME"
+#             -f ./Dockerfile
+#             --tag $CI_REGISTRY_IMAGE/hrm-back:$CI_COMMIT_SHORT_SHA
+#             .
+#         - docker push $CI_REGISTRY_IMAGE/hrm-back:$CI_COMMIT_SHORT_SHA
+#     rules:
+#         - if: $CI_COMMIT_REF_NAME == "master"
+#         - if: $CI_COMMIT_REF_NAME == "develop"
+#     tags:
+#         - build01-docker-server
+
+# push_latest:
+#     extends: .base
+#     variables:
+#         GIT_STRATEGY: none
+#     stage: push
+#     rules:
+#         - if: $CI_COMMIT_REF_NAME == "master"
+#     script:
+#         - docker pull $CI_REGISTRY_IMAGE/hrm-back:$CI_COMMIT_SHORT_SHA
+#         - docker tag $CI_REGISTRY_IMAGE/hrm-back:$CI_COMMIT_SHORT_SHA $CI_REGISTRY_IMAGE/hrm-back:latest
+#         - docker push $CI_REGISTRY_IMAGE/hrm-back:latest
+#     tags:
+#         - build01-docker-server
+
+# push_dev:
+#     extends: .base
+#     variables:
+#         GIT_STRATEGY: none
+#     stage: push
+#     rules:
+#         - if: $CI_COMMIT_REF_NAME == "develop"
+#     script:
+#         - docker pull $CI_REGISTRY_IMAGE/hrm-back:$CI_COMMIT_SHORT_SHA
+#         - docker tag $CI_REGISTRY_IMAGE/hrm-back:$CI_COMMIT_SHORT_SHA $CI_REGISTRY_IMAGE/hrm-back:$CI_COMMIT_REF_NAME
+#         - docker push $CI_REGISTRY_IMAGE/hrm-back:$CI_COMMIT_REF_NAME
+#     tags:
+#         - build01-docker-server
+
+# .deploy:
+#     before_script:
+#         - docker --version
+#         - echo -n $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
+#         - export COMPOSE_PROJECT_NAME=${CI_PROJECT_NAME}_${CI_ENVIRONMENT_NAME}
+#     script:
+#         - docker-compose -f docker-compose.ci.only.yml pull -q
+#         - docker-compose -f docker-compose.ci.only.yml config > /composer/${COMPOSE_PROJECT_NAME}.yml
+#         - docker-compose -f docker-compose.ci.only.yml up -d --no-build --force-recreate --remove-orphans
+# deploy_dev:
+#     extends: .deploy
+#     stage: deploy
+#     environment:
+#         name: dev
+#         url: https://${CI_ENVIRONMENT_SLUG}.hrm-back.docker.only.com.ru
+#     rules:
+#         - if: $CI_COMMIT_REF_NAME == "develop"
+#     tags:
+#         - dev01-server-docker
+
+# deploy_stage:
+#     extends: .deploy
+#     stage: deploy
+#     environment:
+#         name: stage
+#         url: https://${CI_ENVIRONMENT_SLUG}.hrm-back.docker.only.com.ru
+#     rules:
+#         - if: $CI_COMMIT_REF_NAME == "master"
+#     tags:
+#         - dev01-server-docker
