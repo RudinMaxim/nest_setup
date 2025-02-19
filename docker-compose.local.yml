@@ -22,6 +22,8 @@ services:
             - internal
         depends_on:
             - postgres
+            - redis
+            - strapi
         restart: unless-stopped
     postgres:
         image: postgres:latest
@@ -37,19 +39,30 @@ services:
         networks:
             - internal
         restart: unless-stopped
-
-    pgadmin:
-        image: dpage/pgadmin4:latest
+    redis:
+        image: redis:latest
         ports:
-            - '5050:80'
+            - '6379:6379'
         volumes:
-            - pgadmin_data:/var/lib/pgadmin
-            - ./pgadmin-servers.json:/pgadmin4/servers.json
+            - redis_data:/data
+        networks:
+            - internal
+        restart: unless-stopped
+        command: redis-server --appendonly yes
+    strapi:
+        image: strapi/strapi:latest
         environment:
-            - PGADMIN_DEFAULT_EMAIL=admin@admin.com
-            - PGADMIN_DEFAULT_PASSWORD=admin
-            - PGADMIN_CONFIG_SERVER_MODE=False
-            - PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED=False
+            - DATABASE_CLIENT=postgres
+            - DATABASE_HOST=postgres
+            - DATABASE_PORT=5432
+            - DATABASE_NAME=only-hrm
+            - DATABASE_USERNAME=postgres
+            - DATABASE_PASSWORD=postgres
+            - DATABASE_SSL=false
+        volumes:
+            - strapi_data:/srv/app
+        ports:
+            - '1337:1337'
         networks:
             - internal
         depends_on:
@@ -64,3 +77,5 @@ volumes:
     pg_data:
     app_uploads:
     pgadmin_data:
+    redis_data:
+    strapi_data:

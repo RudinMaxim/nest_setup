@@ -1,0 +1,23 @@
+FROM node:18-alpine
+
+WORKDIR /usr/src/app
+
+RUN apk add --no-cache python3 make openssl
+
+COPY package*.json ./
+COPY .env ./
+
+RUN npm ci
+
+COPY tsconfig.json ./
+COPY nodemon.json ./
+
+COPY prisma ./prisma/
+
+RUN npx prisma generate
+
+RUN mkdir -p uploads && chmod 777 uploads
+
+EXPOSE 3000
+
+CMD ["npm", "run", "dev"]

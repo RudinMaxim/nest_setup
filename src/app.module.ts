@@ -4,6 +4,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { LoggerModule } from './shared/logger/logger.module';
 import { TerminusModule } from '@nestjs/terminus';
 import { PrismaModule } from './infrastructure/prisma/prisma.module';
+import { RedisModule } from './infrastructure/redis/redis.module';
 
 @Module({
     imports: [
@@ -24,6 +25,7 @@ import { PrismaModule } from './infrastructure/prisma/prisma.module';
         TerminusModule,
         LoggerModule,
         PrismaModule,
+        RedisModule,
     ],
 })
 export class AppModule {}
