@@ -10,7 +10,6 @@ COPY .env ./
 RUN npm ci
 
 COPY tsconfig.json ./
-COPY nodemon.json ./
 
 COPY prisma ./prisma/
 
@@ -20,4 +19,4 @@ RUN mkdir -p uploads && chmod 777 uploads
 
 EXPOSE 3000
 
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "start:dev"]
