@@ -3,13 +3,12 @@ import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 import { REDIS_CLIENT, REDIS_CONFIG } from './redis.constants';
 import { RedisConfig } from './redis.interface';
-import { LoggerModule } from '../../shared/logger/logger.module';
 import { RedisServiceImpl } from './redis.service';
 
 @Global()
 @Module({
-    imports: [LoggerModule],
     providers: [
+        RedisServiceImpl,
         {
             provide: REDIS_CONFIG,
             useFactory: (configService: ConfigService): RedisConfig => ({
@@ -42,10 +41,6 @@ import { RedisServiceImpl } from './redis.service';
                 return client;
             },
             inject: [REDIS_CONFIG],
-        },
-        {
-            provide: RedisServiceImpl,
-            useClass: RedisServiceImpl,
         },
     ],
     exports: [RedisServiceImpl],

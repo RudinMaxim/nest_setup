@@ -1,14 +1,11 @@
-import { Inject, Injectable, LoggerService, OnModuleDestroy } from '@nestjs/common';
+import { Inject, Injectable, OnModuleDestroy } from '@nestjs/common';
 import Redis from 'ioredis';
 import { REDIS_CLIENT } from './redis.constants';
 import { IRedisService } from './redis.interface';
 
 @Injectable()
 export class RedisServiceImpl implements IRedisService, OnModuleDestroy {
-    constructor(
-        @Inject(REDIS_CLIENT) private readonly redisClient: Redis,
-        private readonly logger: LoggerService,
-    ) {}
+    constructor(@Inject(REDIS_CLIENT) private readonly redisClient: Redis) {}
 
     /**
      * Returns the Redis client instance
@@ -149,10 +146,9 @@ export class RedisServiceImpl implements IRedisService, OnModuleDestroy {
     async onModuleDestroy() {
         try {
             await this.quit();
-            this.logger.log('Redis connection closed');
         } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.stack : 'Unknown error';
-            this.logger.error('Error closing Redis connection', errorMessage);
+            console.error(`Error during Redis shutdown: ${errorMessage}`);
         }
     }
 }
