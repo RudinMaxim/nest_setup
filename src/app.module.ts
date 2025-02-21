@@ -5,6 +5,7 @@ import { LoggerModule } from './shared/logger/logger.module';
 import { TerminusModule } from '@nestjs/terminus';
 import { PrismaModule } from './infrastructure/prisma/prisma.module';
 import { RedisModule } from './infrastructure/redis/redis.module';
+import { ExampleModule } from './domain/example/example.module';
 
 @Module({
     imports: [
@@ -26,6 +27,8 @@ import { RedisModule } from './infrastructure/redis/redis.module';
         LoggerModule,
         PrismaModule,
         RedisModule,
+        ExampleModule, // ! TODO: Удалите эту строку после создания вашего первого модуля
     ],
+    exports: [RedisModule, PrismaModule],
 })
 export class AppModule {}
