@@ -6,9 +6,11 @@ import { configureSwagger } from './shared/swagger/swagger.config';
 import { LoggerService } from './shared/logger/logger.service';
 
 async function bootstrap(): Promise<void> {
-    const app = await NestFactory.create(AppModule);
+    const logger = new LoggerService();
+    const app = await NestFactory.create(AppModule, {
+        logger: logger,
+    });
     const configService = app.get(ConfigService);
-    const logger = app.get(LoggerService);
 
     if (configService.get<boolean>('app.cors.enabled')) {
         app.enableCors({

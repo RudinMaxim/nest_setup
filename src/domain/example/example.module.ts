@@ -2,7 +2,8 @@ import { Module } from '@nestjs/common';
 import { ExampleController } from './controllers';
 import { ExampleService } from './services';
 import { DatabaseRepository, CacheRepository } from './repositories';
-import { PrismaService, RedisService } from '../../app.module';
+import { PrismaService } from '../../infrastructure/prisma/prisma.service';
+import { RedisServiceImpl as RedisService } from '../../infrastructure/redis/redis.service';
 
 @Module({
     controllers: [ExampleController],

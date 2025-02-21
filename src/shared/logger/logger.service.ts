@@ -29,6 +29,14 @@ export class LoggerService implements NestLoggerService {
         this.logger.info(message, { context });
     }
 
+    fatal(message: string, ...optionalParams: any[]) {
+        this.logger.error(message, optionalParams);
+    }
+
+    info(message: string, context?: string): void {
+        this.logger.info(message, { context });
+    }
+
     error(message: string, trace?: string, context?: string): void {
         this.logger.error(message, { trace, context });
     }
