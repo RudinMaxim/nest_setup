@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { IRedisService } from '../../../infrastructure/redis/redis.interface';
+import { RedisService } from '../../../infrastructure/redis/redis.interface';
 
 @Injectable()
 export class CacheRepository {
     private readonly PREFIX = 'example:';
 
-    constructor(private readonly redis: IRedisService) {}
+    constructor(private readonly redis: RedisService) {}
 
     async get(id: number): Promise<string | null> {
         const key = `${this.PREFIX}${id}`;
