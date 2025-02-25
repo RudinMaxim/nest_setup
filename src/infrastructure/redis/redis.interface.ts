@@ -1,3 +1,5 @@
+import Redis from 'ioredis';
+
 export type RedisConfig = {
     host: string;
     port: number;
@@ -7,7 +9,7 @@ export type RedisConfig = {
 };
 
 export abstract class RedisService {
-    abstract getClient(): any;
+    abstract getClient(): Redis;
     abstract get(key: string): Promise<string | null>;
     abstract set(key: string, value: string, ttl?: number): Promise<void>;
     abstract del(key: string): Promise<void>;
