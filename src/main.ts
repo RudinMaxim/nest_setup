@@ -34,7 +34,7 @@ async function bootstrap(): Promise<void> {
     }
 
     if (configService.get('SWAGGER_ENABLED') === 'true') {
-        configureSwagger(app);
+        configureSwagger(app, configService);
     }
 
     const port = configService.get<number>('PORT') || 3000;

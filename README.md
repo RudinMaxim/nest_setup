@@ -1,3 +1,4 @@
 TODO: Сделать генерацию домена
-TODO: Сделать базовые методы для призмы
 TODO: Написать тесты для Инфроструктуры
+
+docker-compose -f docker-compose.local.yml up -d
