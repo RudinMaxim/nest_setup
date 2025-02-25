@@ -9,7 +9,7 @@ export class RedisServiceImpl implements RedisService, OnModuleDestroy {
 
     /**
      * Returns the Redis client instance
-     * @returns {Promise<any>} Redis client instance
+     * @returns {Promise<Redis>} Redis client instance
      */
     getClient(): Redis {
         return this.redisClient;
