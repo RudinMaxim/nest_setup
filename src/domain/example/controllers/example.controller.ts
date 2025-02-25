@@ -11,8 +11,9 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { ExampleService } from '../services';
-import { CreateExampleDto, UpdateExampleDto, PaginationExampleDto } from '../dto';
+import { CreateExampleDto, UpdateExampleDto } from '../dto';
 import { Example } from '../entities/example.entity';
+import { BasePaginationDto } from 'src/shared/dto';
 
 @ApiTags('Example')
 @Controller('examples')
@@ -30,7 +31,7 @@ export class ExampleController {
     @ApiQuery({ name: 'page', required: false })
     @ApiQuery({ name: 'limit', required: false })
     @ApiResponse({ status: 200, type: [Example] })
-    findAll(@Query() pagination: PaginationExampleDto) {
+    findAll(@Query() pagination: BasePaginationDto) {
         return this.service.findAll(pagination);
     }
 

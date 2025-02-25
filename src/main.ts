@@ -4,13 +4,26 @@ import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
 import { configureSwagger } from './shared/swagger/swagger.config';
 import { LoggerService } from './shared/logger/logger.service';
+import { HttpExceptionFilter } from './domain/common/filters/http-exception.filter';
 
 async function bootstrap(): Promise<void> {
-    const logger = new LoggerService();
     const app = await NestFactory.create(AppModule, {
-        logger: logger,
+        bufferLogs: true,
     });
+
     const configService = app.get(ConfigService);
+    const logger = app.get(LoggerService);
+
+    app.useLogger(logger);
+    app.setGlobalPrefix('api/v1');
+    app.useGlobalFilters(new HttpExceptionFilter());
+    app.useGlobalPipes(
+        new ValidationPipe({
+            transform: true,
+            forbidUnknownValues: true,
+            validationError: { target: false },
+        }),
+    );
 
     if (configService.get<boolean>('app.cors.enabled')) {
         app.enableCors({
@@ -20,19 +33,9 @@ async function bootstrap(): Promise<void> {
         });
     }
 
-    app.useGlobalPipes(
-        new ValidationPipe({
-            whitelist: true,
-            forbidNonWhitelisted: true,
-            transform: true,
-        }),
-    );
-
     if (configService.get('SWAGGER_ENABLED') === 'true') {
         configureSwagger(app);
     }
-
-    app.setGlobalPrefix('api/v1');
 
     const port = configService.get<number>('PORT') || 3000;
     await app.listen(port);
