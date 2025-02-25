@@ -10,7 +10,7 @@ export class FilterFieldDto {
 
     @ApiProperty({ required: false })
     @IsOptional()
-    value?: any;
+    value?: unknown;
 }
 
 export class FilterDto {
