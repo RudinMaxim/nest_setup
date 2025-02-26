@@ -9,6 +9,8 @@
 5. [Рекомендации по разработке](#рекомендации-по-разработке)
 6. [Troubleshooting](#troubleshooting)
 7. [Архитектурные решения (ADR)](#архитектурные-решения-adr)
+8. [Деплой](docs/deployment/deployment-to-server.md)
+9. [CI/CD](docs/deployment/ci-cd.md)
 
 ---
 
