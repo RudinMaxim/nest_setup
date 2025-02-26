@@ -5,8 +5,9 @@
 Документация в директории `docs/adr/`:
 
 - [ADR-001: Выбор Prisma в качестве ORM](docs/adr/001-prisma-as-orm.md)
-- [ADR-002: Модульная структура на основе DDD](docs/adr/002-ddd-modular-architecture.md)
-- [ADR-003: Интеграция Swagger для API-документации](docs/adr/003-swagger-integration.md)
+- [ADR-002: Использование Redis для кэширования](docs/adr/002-using-redis-for-caching.md)
+- [ADR-003: Модульная структура на основе DDD](docs/adr/003-ddd-modular-architecture.md)
+- [ADR-004: Интеграция Swagger для API-документации](docs/adr/004-swagger-integration.md)
 
 ---
 
@@ -165,9 +166,9 @@ npm run test:cov
 ### Code Review
 
 - Чек-лист:
-  - [ ] Соответствие SOLID
-  - [ ] Тесты покрывают ключевые сценарии
-  - [ ] Документация Swagger обновлена
+    - [ ] Соответствие SOLID
+    - [ ] Тесты покрывают ключевые сценарии
+    - [ ] Документация Swagger обновлена
 
 ---
 
