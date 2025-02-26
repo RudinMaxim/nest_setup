@@ -4,8 +4,6 @@ TODO: Написать тесты для Инфраструктуры
 
 TODO: Сделать набор методов для Prisma
 
-TODO: Написать тесты для Example
-
 TODO: Прокинуть порты для prisma studio и swagger
 
 TODO: Настроить отправку логов в Sentry
