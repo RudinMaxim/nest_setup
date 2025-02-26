@@ -126,8 +126,7 @@ docker-compose exec api npm run migrate:deploy
                 data: result,
             };
         }
-        }
-        ```
+    }
     ````
 
 ---
