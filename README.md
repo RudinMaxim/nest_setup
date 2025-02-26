@@ -1,78 +1,190 @@
 # Backend NEST.JS
 
-## Инструкция по запуску
+## Архитектурные решения (ADR)
 
-Перед началом работ необходимо установить docker и docker-compose и скопировать переменные окружения из `.env.example` в `.env`.
+Документация в директории `docs/adr/`:
 
-### Запуск проекта
+- [ADR-001: Выбор Prisma в качестве ORM](docs/adr/001-prisma-as-orm.md)
+- [ADR-002: Модульная структура на основе DDD](docs/adr/002-ddd-modular-architecture.md)
+- [ADR-003: Интеграция Swagger для API-документации](docs/adr/003-swagger-integration.md)
 
-    1. Ручной запуск
-        1. Установить зависимости (Node.js v.17+): `npm install`
-        2. Может потребоваться выполнить генерацию типов Prisma: `npm run generate`
-        3. Запуск локальной сборки: `npm run start:dev`
-    2. Docker
-       1. Убедитесь, что у вас установлен Docker и Docker Compose: `docker --version` и `docker-compose --version`
-       2. Запустить контейнер: `docker-compose -f docker-compose.local.yml up -d`
+---
 
-### Доступные сервисы
+## Содержание
 
-        - Backend API: [localhost:3000](http://localhost:3000)
-        - Swagger: [localhost:3000/api/v1/docs](http://localhost:3000/api/v1/docs)
+1. [Настройка окружения](#настройка-окружения)
+2. [Запуск проекта](#запуск-проекта)
+3. [Миграции Prisma](#миграции-prisma)
+4. [Документация API](#документация-api)
+5. [Рекомендации по разработке](#рекомендации-по-разработке)
+6. [Troubleshooting](#troubleshooting)
 
-## Prisma migrate
+---
 
-Миграции в prisma работают по шаблону [model/entity-first](https://www.prisma.io/docs/concepts/components/prisma-migrate/mental-model#patterns-for-evolving-database-schemas)
+## Настройка окружения
 
-### Develop environment
+### Требования
 
-Изменения должны быть внесены локально в схему `/prisma/schema.prisma`.
+- Node.js v18+
+- Docker 24+ и Docker Compose v2+
+- PostgreSQL 15+ (для локальной разработки)
 
-Для генерации файла миграции и последующего его применения к локальной БД, используется команда:
+### Установка
 
-```shell
-npm run migrate:dev
+1. Скопируйте переменные окружения:
+
+    ```bash
+    cp .env.example .env
+    ```
+
+2. Настройте ключевые параметры в `.env`:
+
+    ```ini
+    DATABASE_URL="postgresql://user:pass@db:5432/app"
+    REDIS_URL="redis://redis:6379"
+    JWT_SECRET="your-secret-key"
+    ```
+
+---
+
+## Запуск проекта
+
+### Локальная разработка
+
+```bash
+npm install
+npm run generate # Генерация Prisma-клиента
+npm run start:dev
 ```
 
-Во время миграции могут возникнуть конфликты, что потребует сбросить локальную БД и пересоздать её заново
+### Docker
 
-Для работы с различиями внутри миграций используется команда:
-
-```shell
-npm run migrate:dev
+```bash
+docker-compose -f docker-compose.local.yml up -d --build
 ```
 
-Все созданные файлы sql-миграций должны быть отправлены в git
+### Доступные endpoints
 
-> Документация: [Prisma миграции в локальном окружении](https://www.prisma.io/docs/concepts/components/prisma-migrate/mental-model#prisma-migrate-in-a-development-environment-local)
+| Сервис       | URL                                 |
+| ------------ | ----------------------------------- |
+| API          | http://localhost:3000/api/v1        |
+| Swagger UI   | http://localhost:3000/api/v1/docs   |
+| Health-check | http://localhost:3000/api/v1/health |
 
-### Production environment
+---
 
-Для синхронизации истории миграций в продуктовом окружении, используется команда:
+## Миграции Prisma
 
-```shell
+### Разработка
+
+```bash
+# Создать новую миграцию
+npm run migrate:dev -- --name init
+
+# Применить миграции
 npm run migrate:deploy
 ```
 
-Например: http://localhost:3000/api-docs/
+### Продакшен
 
-### Порядок работы:
+```bash
+docker-compose exec api npm run migrate:deploy
+```
 
-Отделяем повторяющиеся, или содержащие большое количество описания схемы данных, схемы ответов и т.д. от [основной документации](https://swagger.io/docs/specification/components/):
+> **Важно:** Все SQL-файлы миграций должны быть закоммичены в репозиторий.
 
-- Схемы входящих данных описываем в файлах DTO
+---
 
-- Схемы данных, общие для ВСЕХ доменных областей, описываем в файле `src/swagger/schemas/base.schemas.ts`
+## Документация API
 
-- Для общих схем данных КОНКРЕТНОЙ доменной области создаем отдельный файл содержащий название этой доменной области
-  `src/swagger/schemas/<доменная область>.schemas.ts`
-  Например: `src/swagger/schemas/users.schemas.ts`
+### Правила оформления
 
-- При описании схем данных, по возможности, используем наследование с помощью [allOf](https://swagger.io/docs/specification/data-models/inheritance-and-polymorphism/)
+1. **DTO-классы**:
 
-- Готовые схемы данных интегрируем в описание документации при помощи [$ref](https://swagger.io/docs/specification/using-ref/).
+    - Используйте декораторы `@ApiProperty`
+    - Пример:
 
-- При описании схем ответов (responses), действуем так же, как и при описании схем данных.
+        ```typescript
+        export class CreateUserDto {
+            @ApiProperty({ example: 'user@mail.com', description: 'Email' })
+            @IsEmail()
+            email: string;
+        }
+        ```
 
-- Файлы содержащие схемы ответов находятся в папке `src/swagger/responses/`
+2. **Контроллеры**: - Используйте декораторы `@ApiTags` и `@ApiOperation` - Пример:
 
-- Файлы, содержание схемы ответов, именуются следующим образом: `<доменная область>.responses.ts`
+    ````typescript
+    @ApiTags('Example')
+    @Controller('examples')
+    export class ExampleController {
+    constructor(private readonly service: ExampleService) {}
+
+        @Post()
+        @ApiOperation({ summary: 'Create new example' })
+        @ApiResponse({
+            status: 201,
+            description: 'The example has been successfully created',
+            type: Example,
+        })
+        async create(@Body() dto: CreateExampleDto): Promise<ApiResponseDto<Example>> {
+            const result = await this.service.create(dto);
+            return {
+                success: true,
+                message: 'Example created successfully',
+                data: result,
+            };
+        }
+        }
+        ```
+    ````
+
+---
+
+## Рекомендации по разработке
+
+### Стиль кода
+
+- Линтинг: `npm run lint`
+- Форматирование: `npm run format`
+- Конфиги: [ESLint](eslint.config.mjs), [Prettier](.prettierrc)
+
+### Тестирование
+
+```bash
+# Unit-тесты
+npm run test
+
+# e2e-тесты
+npm run test:e2e
+
+# Покрытие кода
+npm run test:cov
+```
+
+### Code Review
+
+- Чек-лист:
+  - [ ] Соответствие SOLID
+  - [ ] Тесты покрывают ключевые сценарии
+  - [ ] Документация Swagger обновлена
+
+---
+
+## Troubleshooting
+
+### Ошибка: "Database not initialized"
+
+```bash
+docker-compose down -v && docker-compose up -d
+npm run migrate:deploy
+```
+
+### Ошибка: "Invalid JWT secret"
+
+- Убедитесь, что в `.env` задана переменная `JWT_SECRET`
+
+### Swagger не отображает схемы
+
+- Проверьте использование `@ApiExtraModels()` в контроллерах
+- Убедитесь, что DTO экспортируются из `index.ts`

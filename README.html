@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Backend NEST&period;JS</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <h1 id="backend-nestjs">Backend NEST.JS</h1>
+<h2 id="архитектурные-решения-adr">Архитектурные решения (ADR)</h2>
+<p>Документация в директории <code>docs/adr/</code>:</p>
+<ul>
+<li><a href="docs/adr/001-prisma-as-orm.html">ADR-001: Выбор Prisma в качестве ORM</a></li>
+<li><a href="docs/adr/002-ddd-modular-architecture.html">ADR-002: Модульная структура на основе DDD</a></li>
+<li><a href="docs/adr/003-swagger-integration.html">ADR-003: Интеграция Swagger для API-документации</a></li>
+</ul>
+<hr>
+<h2 id="содержание">Содержание</h2>
+<ol>
+<li><a href="#%D0%BD%D0%B0%D1%81%D1%82%D1%80%D0%BE%D0%B9%D0%BA%D0%B0-%D0%BE%D0%BA%D1%80%D1%83%D0%B6%D0%B5%D0%BD%D0%B8%D1%8F">Настройка окружения</a></li>
+<li><a href="#%D0%B7%D0%B0%D0%BF%D1%83%D1%81%D0%BA-%D0%BF%D1%80%D0%BE%D0%B5%D0%BA%D1%82%D0%B0">Запуск проекта</a></li>
+<li><a href="#%D0%BC%D0%B8%D0%B3%D1%80%D0%B0%D1%86%D0%B8%D0%B8-prisma">Миграции Prisma</a></li>
+<li><a href="#%D0%B4%D0%BE%D0%BA%D1%83%D0%BC%D0%B5%D0%BD%D1%82%D0%B0%D1%86%D0%B8%D1%8F-api">Документация API</a></li>
+<li><a href="#%D1%80%D0%B5%D0%BA%D0%BE%D0%BC%D0%B5%D0%BD%D0%B4%D0%B0%D1%86%D0%B8%D0%B8-%D0%BF%D0%BE-%D1%80%D0%B0%D0%B7%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%BA%D0%B5">Рекомендации по разработке</a></li>
+<li><a href="#troubleshooting">Troubleshooting</a></li>
+</ol>
+<hr>
+<h2 id="настройка-окружения">Настройка окружения</h2>
+<h3 id="требования">Требования</h3>
+<ul>
+<li>Node.js v18+</li>
+<li>Docker 24+ и Docker Compose v2+</li>
+<li>PostgreSQL 15+ (для локальной разработки)</li>
+</ul>
+<h3 id="установка">Установка</h3>
+<ol>
+<li>
+<p>Скопируйте переменные окружения:</p>
+<pre><code class="language-bash"><span class="hljs-built_in">cp</span> .env.example .<span class="hljs-built_in">env</span>
+</code></pre>
+</li>
+<li>
+<p>Настройте ключевые параметры в <code>.env</code>:</p>
+<pre><code class="language-ini"><span class="hljs-attr">DATABASE_URL</span>=<span class="hljs-string">&quot;postgresql://user:pass@db:5432/app&quot;</span>
+<span class="hljs-attr">REDIS_URL</span>=<span class="hljs-string">&quot;redis://redis:6379&quot;</span>
+<span class="hljs-attr">JWT_SECRET</span>=<span class="hljs-string">&quot;your-secret-key&quot;</span>
+</code></pre>
+</li>
+</ol>
+<hr>
+<h2 id="запуск-проекта">Запуск проекта</h2>
+<h3 id="локальная-разработка">Локальная разработка</h3>
+<pre><code class="language-bash">npm install
+npm run generate <span class="hljs-comment"># Генерация Prisma-клиента</span>
+npm run start:dev
+</code></pre>
+<h3 id="docker">Docker</h3>
+<pre><code class="language-bash">docker-compose -f docker-compose.local.yml up -d --build
+</code></pre>
+<h3 id="доступные-endpoints">Доступные endpoints</h3>
+<table>
+<thead>
+<tr>
+<th>Сервис</th>
+<th>URL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>API</td>
+<td><a href="http://localhost:3000/api/v1">http://localhost:3000/api/v1</a></td>
+</tr>
+<tr>
+<td>Swagger UI</td>
+<td><a href="http://localhost:3000/api/v1/docs">http://localhost:3000/api/v1/docs</a></td>
+</tr>
+<tr>
+<td>Health-check</td>
+<td><a href="http://localhost:3000/api/v1/health">http://localhost:3000/api/v1/health</a></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="миграции-prisma">Миграции Prisma</h2>
+<h3 id="разработка">Разработка</h3>
+<pre><code class="language-bash"><span class="hljs-comment"># Создать новую миграцию</span>
+npm run migrate:dev -- --name init
+
+<span class="hljs-comment"># Применить миграции</span>
+npm run migrate:deploy
+</code></pre>
+<h3 id="продакшен">Продакшен</h3>
+<pre><code class="language-bash">docker-compose <span class="hljs-built_in">exec</span> api npm run migrate:deploy
+</code></pre>
+<blockquote>
+<p><strong>Важно:</strong> Все SQL-файлы миграций должны быть закоммичены в репозиторий.</p>
+</blockquote>
+<hr>
+<h2 id="документация-api">Документация API</h2>
+<h3 id="правила-оформления">Правила оформления</h3>
+<ol>
+<li>
+<p><strong>DTO-классы</strong>:</p>
+<ul>
+<li>
+<p>Используйте декораторы <code>@ApiProperty</code></p>
+</li>
+<li>
+<p>Пример:</p>
+<pre><code class="language-typescript"><span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">CreateUserDto</span> {
+    <span class="hljs-meta">@ApiProperty</span>({ <span class="hljs-attr">example</span>: <span class="hljs-string">&#x27;user@mail.com&#x27;</span>, <span class="hljs-attr">description</span>: <span class="hljs-string">&#x27;Email&#x27;</span> })
+    <span class="hljs-meta">@IsEmail</span>()
+    <span class="hljs-attr">email</span>: <span class="hljs-built_in">string</span>;
+}
+</code></pre>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Контроллеры</strong>: - Используйте декораторы <code>@ApiTags</code> и <code>@ApiOperation</code> - Пример:</p>
+<pre><code class="language-typescript"><span class="hljs-meta">@ApiTags</span>(<span class="hljs-string">&#x27;Example&#x27;</span>)
+<span class="hljs-meta">@Controller</span>(<span class="hljs-string">&#x27;examples&#x27;</span>)
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ExampleController</span> {
+<span class="hljs-title function_">constructor</span>(<span class="hljs-params"><span class="hljs-keyword">private</span> <span class="hljs-keyword">readonly</span> service: ExampleService</span>) {}
+
+    <span class="hljs-meta">@Post</span>()
+    <span class="hljs-meta">@ApiOperation</span>({ <span class="hljs-attr">summary</span>: <span class="hljs-string">&#x27;Create new example&#x27;</span> })
+    <span class="hljs-meta">@ApiResponse</span>({
+        <span class="hljs-attr">status</span>: <span class="hljs-number">201</span>,
+        <span class="hljs-attr">description</span>: <span class="hljs-string">&#x27;The example has been successfully created&#x27;</span>,
+        <span class="hljs-attr">type</span>: <span class="hljs-title class_">Example</span>,
+    })
+    <span class="hljs-keyword">async</span> <span class="hljs-title function_">create</span>(<span class="hljs-meta">@Body</span>() <span class="hljs-attr">dto</span>: <span class="hljs-title class_">CreateExampleDto</span>): <span class="hljs-title class_">Promise</span>&lt;<span class="hljs-title class_">ApiResponseDto</span>&lt;<span class="hljs-title class_">Example</span>&gt;&gt; {
+        <span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">service</span>.<span class="hljs-title function_">create</span>(dto);
+        <span class="hljs-keyword">return</span> {
+            <span class="hljs-attr">success</span>: <span class="hljs-literal">true</span>,
+            <span class="hljs-attr">message</span>: <span class="hljs-string">&#x27;Example created successfully&#x27;</span>,
+            <span class="hljs-attr">data</span>: result,
+        };
+    }
+    }
+    <span class="hljs-string">``</span><span class="hljs-string">`
+</span></code></pre>
+</li>
+</ol>
+<hr>
+<h2 id="рекомендации-по-разработке">Рекомендации по разработке</h2>
+<h3 id="стиль-кода">Стиль кода</h3>
+<ul>
+<li>Линтинг: <code>npm run lint</code></li>
+<li>Форматирование: <code>npm run format</code></li>
+<li>Конфиги: <a href="eslint.config.mjs">ESLint</a>, <a href=".prettierrc">Prettier</a></li>
+</ul>
+<h3 id="тестирование">Тестирование</h3>
+<pre><code class="language-bash"><span class="hljs-comment"># Unit-тесты</span>
+npm run <span class="hljs-built_in">test</span>
+
+<span class="hljs-comment"># e2e-тесты</span>
+npm run <span class="hljs-built_in">test</span>:e2e
+
+<span class="hljs-comment"># Покрытие кода</span>
+npm run <span class="hljs-built_in">test</span>:cov
+</code></pre>
+<h3 id="code-review">Code Review</h3>
+<ul>
+<li>Чек-лист:
+<ul class="contains-task-list">
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Соответствие SOLID</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Тесты покрывают ключевые сценарии</li>
+<li class="task-list-item enabled"><input class="task-list-item-checkbox"type="checkbox"> Документация Swagger обновлена</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="ошибка-database-not-initialized">Ошибка: &quot;Database not initialized&quot;</h3>
+<pre><code class="language-bash">docker-compose down -v &amp;&amp; docker-compose up -d
+npm run migrate:deploy
+</code></pre>
+<h3 id="ошибка-invalid-jwt-secret">Ошибка: &quot;Invalid JWT secret&quot;</h3>
+<ul>
+<li>Убедитесь, что в <code>.env</code> задана переменная <code>JWT_SECRET</code></li>
+</ul>
+<h3 id="swagger-не-отображает-схемы">Swagger не отображает схемы</h3>
+<ul>
+<li>Проверьте использование <code>@ApiExtraModels()</code> в контроллерах</li>
+<li>Убедитесь, что DTO экспортируются из <code>index.ts</code></li>
+</ul>
+
+            
+            
+        </body>
+        </html>
