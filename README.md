@@ -62,6 +62,7 @@ docker-compose -f docker-compose.local.yml up -d --build
 | ------------ | ----------------------------------- |
 | API          | http://localhost:3000/api/v1        |
 | Swagger UI   | http://localhost:3000/api/v1/docs   |
+| СУБД         | http://localhost:5555               |
 | Health-check | http://localhost:3000/api/v1/health |
 
 ---
@@ -107,11 +108,11 @@ docker-compose exec api npm run migrate:deploy
 
 2. **Контроллеры**: - Используйте декораторы `@ApiTags` и `@ApiOperation` - Пример:
 
-    ````typescript
+    ```typescript
     @ApiTags('Example')
     @Controller('examples')
     export class ExampleController {
-    constructor(private readonly service: ExampleService) {}
+        constructor(private readonly service: ExampleService) {}
 
         @Post()
         @ApiOperation({ summary: 'Create new example' })
@@ -129,7 +130,7 @@ docker-compose exec api npm run migrate:deploy
             };
         }
     }
-    ````
+    ```
 
 ---
 

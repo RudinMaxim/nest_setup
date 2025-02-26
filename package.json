@@ -22,7 +22,7 @@
         "migrate:dev": "prisma migrate dev",
         "migrate:deploy": "prisma migrate deploy",
         "migrate:diff": "prisma migrate diff",
-        "prisma:studio": "npx prisma studio",
+        "prisma:studio": "npx prisma studio --port 5555",
         "generate": "prisma generate"
     },
     "dependencies": {

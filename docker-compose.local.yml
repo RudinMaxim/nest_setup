@@ -8,8 +8,10 @@ services:
             - ./package.json:/usr/src/app/package.json
             - ./package-lock.json:/usr/src/app/package-lock.json
             - app_uploads:/usr/src/app/uploads
+            - /usr/src/app/node_modules
         ports:
             - '3000:3000'
+            - '5555:5555'
         environment:
             - NODE_ENV=development
             - POSTGRES_HOST=postgres
@@ -48,6 +50,20 @@ services:
             - internal
         restart: unless-stopped
         command: redis-server --appendonly yes
+    prisma-studio:
+        image: node:18
+        working_dir: /usr/src/app
+        volumes:
+            - .:/usr/src/app
+        command: ['npx', 'prisma', 'studio']
+        ports:
+            - '5555:5555'
+        environment:
+            - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/only-hrm?schema=public
+        networks:
+            - internal
+        depends_on:
+            - postgres
 
 networks:
     internal:
