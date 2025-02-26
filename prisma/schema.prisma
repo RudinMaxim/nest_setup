@@ -1,3 +1,6 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,14 +10,151 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Example {
-  id          Int      @id @default(autoincrement())
-  title       String   @db.VarChar(255)
-  description String   @db.Text
-  value       Int
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+model User {
+  uuid                 String    @id @unique @default(uuid())
+  email                String    @unique
+  phone                String    @unique
+  telegram             String    @unique
+  name                 String
+  surname              String
+  avatar               String?
+  patronymic           String?
+  password             String
+  dateBirth            DateTime?
+  education            String?
+  courses              String?
+  dateStart            DateTime?
+  departmentId         String
+  statusId             String    @unique
+  post                 String?
+  grade                Grade?
+  gender               String?
+  dateAttestation      DateTime?
+  timeZone             String?
+  role                 Role?
+  statusOnboarding     String?
+  isActive             Boolean?
+  resetPasswordToken   String?
+  resetPasswordExpires DateTime?
 
-  @@index([title])
-  @@index([value])
+  department     Department?     @relation(fields: [departmentId], references: [uuid])
+  UserStatus     UserStatus?
+  userCompetence UserCompetence?
+  certificates   Certificate[]
+  events         Event[]         @relation("UserEvents")
+
+  @@map("users")
+}
+
+model UserStatus {
+  uuid      String    @id @unique @default(uuid())
+  userUUID  String    @unique
+  status    Status    @default(WORKING)
+  startTime DateTime?
+  endTime   DateTime?
+  user      User?     @relation(fields: [userUUID], references: [uuid])
+
+  @@map("user_statuses")
+}
+
+model Certificate {
+  uuid   String @id @unique @default(uuid())
+  userId String
+  name   String
+  path   String
+  user   User   @relation(fields: [userId], references: [uuid])
+
+  @@map("certificates")
+}
+
+model Department {
+  uuid        String      @id @unique @default(uuid())
+  name        String
+  description String?
+  headUUID    String?
+  users       User[]
+  events      Event[]
+  competence  Competence?
+
+  @@map("departments")
+}
+
+model UserCompetence {
+  uuid           String      @id @unique @default(uuid())
+  userId         String      @unique
+  competenceId   String?
+  level          Int?
+  score          Int?
+  isEndorsements Boolean?
+  user           User        @relation(fields: [userId], references: [uuid])
+  competence     Competence? @relation(fields: [competenceId], references: [uuid])
+
+  @@map("user_competences")
+}
+
+model Competence {
+  uuid            String           @id @unique @default(uuid())
+  name            String
+  description     String?
+  departmentId    String?          @unique
+  department      Department?      @relation(fields: [departmentId], references: [uuid])
+  userCompetences UserCompetence[]
+
+  @@map("competences")
+}
+
+model Event {
+  uuid         String     @id @unique @default(uuid())
+  name         String
+  type         EventType  @default(ATTESTATION)
+  dateStart    DateTime
+  dateEnd      DateTime
+  result       String?
+  link         String?
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [uuid])
+  users        User[]     @relation("UserEvents")
+
+  @@map("events")
+}
+
+model UserDepartment {
+  userId       String
+  departmentId String
+  eventId      String?
+
+  @@id([userId, departmentId])
+  @@map("user_departments")
+}
+
+enum Status {
+  WORKING
+  BREAK
+  MEETING
+  VACATION
+  SICK_LEAVE
+  REMOTE
+}
+
+enum Grade {
+  INTERN
+  JUNIOR
+  MIDDLE
+  MIDDLE_PLUS
+  SENIOR
+}
+
+enum Role {
+  EMPLOYEE
+  ADMIN_DEPARTMENT
+  ADMIN
+  CEO
+}
+
+enum EventType {
+  ATTESTATION
+  PRESENTATION
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
 }
