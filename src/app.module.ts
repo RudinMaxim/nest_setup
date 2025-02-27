@@ -6,6 +6,7 @@ import { TerminusModule } from '@nestjs/terminus';
 import { PrismaModule } from './infrastructure/prisma/prisma.module';
 import { RedisModule } from './infrastructure/redis/redis.module';
 import { ExampleModule } from './domain/example/example.module';
+import { MailerModule } from './infrastructure/mailer/mailer.module';
 
 @Module({
     imports: [
@@ -18,7 +19,7 @@ import { ExampleModule } from './domain/example/example.module';
             inject: [ConfigService],
             useFactory: (config: ConfigService) => [
                 {
-                    ttl: config.get('RATE_LIMIT_TTL', 60000),
+                    ttl: config.get('RATE_LIMIT_TTL', 60000), // 60 секунд
                     limit: config.get('RATE_LIMIT_MAX', 100),
                 },
             ],
@@ -26,9 +27,10 @@ import { ExampleModule } from './domain/example/example.module';
         TerminusModule,
         LoggerModule,
         PrismaModule,
+        MailerModule,
         RedisModule,
         ExampleModule, // ! TODO: Удалите эту строку после создания вашего первого модуля
     ],
-    exports: [RedisModule, PrismaModule],
+    exports: [RedisModule, MailerModule, PrismaModule],
 })
 export class AppModule {}
