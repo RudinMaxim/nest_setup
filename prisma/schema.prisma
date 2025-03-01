@@ -20,20 +20,20 @@ model User {
   avatar               String?
   patronymic           String?
   password             String
-  dateBirth            DateTime?
+  dateBirth            DateTime
   education            String?
   courses              String?
-  dateStart            DateTime?
+  dateStart            DateTime
   departmentId         String
   statusId             String    @unique
-  post                 String?
-  grade                Grade?
-  gender               String?
-  dateAttestation      DateTime?
+  post                 String
+  grade                Grade
+  gender               Gender
+  dateAttestation      DateTime
   timeZone             String?
-  role                 Role?
-  statusOnboarding     String?
-  isActive             Boolean?
+  role                 Role
+  statusOnboarding     String
+  isActive             Boolean
   resetPasswordToken   String?
   resetPasswordExpires DateTime?
 
@@ -71,8 +71,9 @@ model Department {
   uuid        String      @id @unique @default(uuid())
   name        String
   description String?
-  headUUID    String?
-  users       User[]
+  headUUID    String?     @unique
+  user        User?       @relation(fields: [headUUID], references: [uuid])
+  member      User[]
   events      Event[]
   competence  Competence?
 
@@ -142,6 +143,11 @@ enum Grade {
   MIDDLE
   MIDDLE_PLUS
   SENIOR
+}
+
+enum Gender {
+  MALE
+  FEMALE
 }
 
 enum Role {

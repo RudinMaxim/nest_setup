@@ -1,10 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional } from 'class-validator';
+import { IsOptional, IsUUID } from 'class-validator';
 
 export class BaseDto {
     @ApiProperty({ required: false })
-    @IsOptional()
-    id?: string;
+    @IsUUID()
+    uuid: string;
 
     @ApiProperty({ required: false, readOnly: true })
     @IsOptional()
