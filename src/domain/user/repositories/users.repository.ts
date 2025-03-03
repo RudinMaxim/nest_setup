@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { UserEntity } from '../entities/user.entity';
-import { Grade, Prisma } from '@prisma/client';
+import { Grade, Prisma, User } from '@prisma/client';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
 import { FilterDto, SortOrder, PaginationDto, ListResponseDto, SortDto } from '../../../shared/dto';
 import { IUser, UserOmitOptions } from '../common';
@@ -36,7 +36,7 @@ export class UsersRepository implements IUsersRepository {
         {} as Record<Grade, number>,
     );
 
-    public async create(user: UserEntity): Promise<IUser | null> {
+    public async create(user: UserEntity): Promise<User | null> {
         try {
             return await this.prismaService.user.create({
                 data: {
