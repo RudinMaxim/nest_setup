@@ -8,22 +8,29 @@ import { PasswordUpdateDto } from '../dto/password-update.dto';
 import * as crypto from 'crypto';
 import { unlink } from 'fs';
 import { UsersRepository } from '../repositories';
-import { AuthInfo } from '../common';
+import { AuthInfo, EDITABLE_FIELDS, IUser, UserOmitOptions } from '../common';
+import { FilterDto, SortDto, PaginationDto, ListResponseDto } from 'src/shared/dto';
+import { UserUpdateDto } from '../dto';
 
-export interface IUsersService {
-    create(dto: any, author: AuthInfo): Promise<User>;
-    find(id: number, author?: AuthInfo): Promise<User>;
-    findAllAndFilter(filters?: any, author?: AuthInfo): Promise<User[]>;
-    findByEmail(email: string, omitOptions?: any): Promise<User>;
-    findByResetPasswordToken(token: string): Promise<User>;
-    update(id: number, dto: any, author: AuthInfo): Promise<User>;
-    delete(id: number, author: AuthInfo): Promise<User>;
-    comparePassword(password: string, passwordHash: string): Promise<boolean>;
-    setResetPasswordToken(email: string): Promise<string>;
-    verifyResetPasswordToken(token: string): Promise<User>;
-    resetPassword(dto: any): Promise<User>;
-    updatePassword(dto: any): Promise<User>;
-    addHostnameForUserFile(user: User | AuthInfo): void;
+abstract class IUsersService {
+    abstract create(dto: any, author: AuthInfo): Promise<User>;
+    abstract find(id: number, author?: AuthInfo): Promise<User>;
+    abstract findMany(
+        filters?: FilterDto,
+        sort?: SortDto,
+        pagination?: PaginationDto,
+        omitOptions?: UserOmitOptions,
+    ): Promise<ListResponseDto<IUser> | null>;
+    abstract findByEmail(email: string, omitOptions?: any): Promise<User>;
+    abstract findByResetPasswordToken(token: string): Promise<User>;
+    abstract update(id: number, dto: any, author: AuthInfo): Promise<User>;
+    abstract delete(id: number, author: AuthInfo): Promise<User>;
+    abstract comparePassword(password: string, passwordHash: string): Promise<boolean>;
+    abstract setResetPasswordToken(email: string): Promise<string>;
+    abstract verifyResetPasswordToken(token: string): Promise<User>;
+    abstract resetPassword(dto: any): Promise<User>;
+    abstract updatePassword(dto: any): Promise<User>;
+    abstract addHostnameForUserFile(user: User | AuthInfo): void;
 }
 
 @Injectable()

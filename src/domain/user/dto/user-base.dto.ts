@@ -1,123 +1,105 @@
-import { IsString, IsEmail, IsOptional, IsUUID, IsBoolean, IsDate, IsEnum } from 'class-validator';
+import { IsString, IsEmail, IsOptional, IsDate, IsEnum } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Gender, Grade, Role, User } from '@prisma/client';
+import { Grade, Role, User } from '@prisma/client';
 import { BaseDto } from 'src/shared/dto';
 
 export class UserBaseDto extends BaseDto implements User {
     @ApiProperty()
     @IsEmail()
-    readonly email: string;
+    email: string;
 
     @ApiProperty()
     @IsString()
-    readonly phone: string;
+    phone: string;
 
     @ApiProperty()
     @IsString()
-    readonly telegram: string;
+    telegram: string;
 
     @ApiProperty()
     @IsString()
-    readonly password: string;
+    password: string;
 
     @ApiProperty()
     @IsString()
-    readonly name: string;
+    name: string;
 
     @ApiProperty()
     @IsString()
-    readonly surname: string;
+    surname: string;
 
     @ApiPropertyOptional()
     @IsOptional()
     @IsString()
-    readonly patronymic: string | null;
+    patronymic: string | null;
 
     @ApiPropertyOptional()
     @IsOptional()
     @IsString()
-    readonly avatar: string | null;
-
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsDate()
-    @Type(() => Date)
-    readonly dateBirth: Date;
-
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsString()
-    readonly education: string | null;
-
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsString()
-    readonly courses: string | null;
+    avatar: string | null;
 
     @ApiPropertyOptional()
     @IsOptional()
     @IsDate()
     @Type(() => Date)
-    readonly dateStart: Date;
-
-    @ApiProperty()
-    @IsUUID()
-    readonly departmentId: string;
-
-    @ApiProperty()
-    @IsUUID()
-    readonly statusId: string;
+    dateBirth: Date;
 
     @ApiPropertyOptional()
     @IsOptional()
     @IsString()
-    readonly post: string;
+    education: string | null;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    courses: string | null;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsDate()
+    @Type(() => Date)
+    dateStart: Date;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    post: string;
 
     @ApiPropertyOptional()
     @IsOptional()
     @IsEnum(Grade)
-    readonly grade: Grade;
-
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsString()
-    readonly gender: Gender;
+    grade: Grade;
 
     @ApiPropertyOptional()
     @IsOptional()
     @IsDate()
     @Type(() => Date)
-    readonly dateAttestation: Date;
+    dateAttestation: Date;
 
     @ApiPropertyOptional()
     @IsOptional()
     @IsString()
-    readonly timeZone: string;
+    timeZone: string;
 
     @ApiPropertyOptional()
     @IsOptional()
     @IsEnum(Role)
-    readonly role: Role;
+    role: Role;
 
     @ApiPropertyOptional()
     @IsOptional()
     @IsString()
-    readonly statusOnboarding: string;
-
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsBoolean()
-    readonly isActive: boolean;
-
-    @ApiPropertyOptional()
-    @IsOptional()
-    @IsString()
-    readonly resetPasswordToken: string | null;
+    resetPasswordToken: string | null;
 
     @ApiPropertyOptional()
     @IsOptional()
     @IsDate()
     @Type(() => Date)
-    readonly resetPasswordExpires: Date | null;
+    resetPasswordExpires: Date | null;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    departmentId: number;
 }

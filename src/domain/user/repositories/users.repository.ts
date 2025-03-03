@@ -1,27 +1,28 @@
 import { Injectable } from '@nestjs/common';
 import { UserEntity } from '../entities/user.entity';
-import { Grade } from '@prisma/client';
+import { Grade, Prisma } from '@prisma/client';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
-import { FilterDto, SortOrder, PaginationDto, ListResponseDto } from 'src/shared/dto';
-import { PasswordResetDto } from '../dto';
-import { IUser, UserOmitOptions, usersFilters } from '../common';
+import { FilterDto, SortOrder, PaginationDto, ListResponseDto, SortDto } from '../../../shared/dto';
+import { IUser, UserOmitOptions } from '../common';
 
-interface IUsersRepository {
-    create(user: UserEntity): Promise<IUser | null>;
-    find(uuid: string, omitOptions?: UserOmitOptions): Promise<IUser | null>;
-    findByEmail(email: string, omitOptions?: UserOmitOptions): Promise<IUser | null>;
-    findAllAndFilter(
+abstract class IUsersRepository {
+    abstract create(user: UserEntity): Promise<IUser | null>;
+    abstract find(id: number, omitOptions?: UserOmitOptions): Promise<IUser | null>;
+    abstract findByEmail(email: string, omitOptions?: UserOmitOptions): Promise<IUser | null>;
+    abstract findMany(
         filters?: FilterDto,
+        sort?: SortDto,
         pagination?: PaginationDto,
         omitOptions?: UserOmitOptions,
     ): Promise<ListResponseDto<IUser> | null>;
-    findByResetPasswordToken(resetPasswordToken: PasswordResetDto): Promise<IUser | null>;
-    update(uuid: string, user: Partial<IUser>): Promise<IUser | null>;
-    delete(uuid: string): Promise<IUser | null>;
-    gradeSort(sort: SortOrder, users: IUser[]): IUser[];
+    abstract findByResetPasswordToken(resetPasswordToken: string): Promise<IUser | null>;
+    abstract update(id: number, user: Partial<IUser>): Promise<IUser | null>;
+    abstract delete(id: number): Promise<IUser | null>;
+    abstract gradeSort(sort: SortOrder, users: IUser[]): IUser[];
 }
 
 // TODO: Добавить логер
+// TODO: Добавить кэширование
 
 @Injectable()
 export class UsersRepository implements IUsersRepository {
@@ -51,15 +52,15 @@ export class UsersRepository implements IUsersRepository {
                 },
             });
         } catch (err) {
-            console.log(err);
+            console.error(err);
             return null;
         }
     }
 
-    public async find(uuid: string, omitOptions?: UserOmitOptions): Promise<IUser | null> {
+    public async find(id: number, omitOptions?: UserOmitOptions): Promise<IUser | null> {
         try {
             return await this.prismaService.user.findFirst({
-                where: { uuid },
+                where: { id },
                 omit: omitOptions,
                 include: {
                     department: {
@@ -94,54 +95,117 @@ export class UsersRepository implements IUsersRepository {
         return users;
     };
 
-    public async findAllAndFilter(
-        filters?: usersFilters,
+    public async findMany(
+        filters?: FilterDto,
+        sort?: SortDto,
+        pagination?: PaginationDto,
         omitOptions?: UserOmitOptions,
-        searchFields: string[] = [],
-    ): Promise<IUser[] | null> {
-        const searchWhere: Record<string, any> = {
-            ...(filters?.departmentId && { departmentId: Number(filters.departmentId) }),
-            ...(filters?.search && {
-                OR: searchFields.map((field) => {
-                    if (field === 'grade') {
-                        return {
-                            grade: filters.search,
-                        };
-                    }
-
-                    return {
-                        [field]: {
-                            contains: filters.search,
-                            mode: 'insensitive',
-                        },
-                    };
-                }),
-            }),
-        };
-
-        const sortOptions: Record<string, any>[] = [
-            ...(filters?.surnameSort ? [{ surname: filters.surnameSort }] : []),
-            ...(filters?.postSort ? [{ post: filters.postSort }] : []),
-            ...(filters?.timeZoneSort ? [{ timeZone: filters.timeZoneSort }] : []),
-            ...(filters?.experienceSort ? [{ dateStart: filters.experienceSort }] : []),
-        ];
-
+    ): Promise<ListResponseDto<IUser> | null> {
         try {
+            const where: Prisma.UserWhereInput = {};
+
+            if (filters?.search) {
+                where['OR'] = [
+                    { name: { contains: filters.search, mode: 'insensitive' } },
+                    { surname: { contains: filters.search, mode: 'insensitive' } },
+                    { email: { contains: filters.search, mode: 'insensitive' } },
+                ];
+            }
+
+            if (filters?.fields) {
+                Object.entries(filters.fields).forEach(([field, fieldFilter]) => {
+                    if (fieldFilter.value !== undefined) {
+                        switch (fieldFilter.operator) {
+                            case 'eq':
+                                where[field] = { equals: fieldFilter.value };
+                                break;
+                            case 'ne':
+                                where[field] = { not: { equals: fieldFilter.value } };
+                                break;
+                            case 'gt':
+                                where[field] = { gt: fieldFilter.value };
+                                break;
+                            case 'lt':
+                                where[field] = { lt: fieldFilter.value };
+                                break;
+                            case 'gte':
+                                where[field] = { gte: fieldFilter.value };
+                                break;
+                            case 'lte':
+                                where[field] = { lte: fieldFilter.value };
+                                break;
+                            case 'in':
+                                where[field] = {
+                                    in: Array.isArray(fieldFilter.value)
+                                        ? fieldFilter.value
+                                        : [fieldFilter.value],
+                                };
+                                break;
+                            case 'nin':
+                                where[field] = {
+                                    notIn: Array.isArray(fieldFilter.value)
+                                        ? fieldFilter.value
+                                        : [fieldFilter.value],
+                                };
+                                break;
+                            case 'like':
+                                where[field] = { contains: fieldFilter.value, mode: 'insensitive' };
+                                break;
+                            default:
+                                where[field] = { equals: fieldFilter.value };
+                        }
+                    }
+                });
+            }
+
+            let orderBy: Prisma.UserOrderByWithRelationInput = {};
+
+            if (sort?.field) {
+                orderBy = { [sort.field]: sort.order };
+            } else {
+                orderBy = { surname: SortOrder.DESC };
+            }
+
+            const page = pagination?.page || 1;
+            const limit = pagination?.limit || 10;
+            const skip = (page - 1) * limit;
+
+            const totalItems = await this.prismaService.user.count({ where });
+            const totalPages = Math.ceil(totalItems / limit);
+
             const users = await this.prismaService.user.findMany({
+                where,
+                orderBy,
+                skip,
+                take: limit,
                 omit: omitOptions,
-                where: searchWhere,
-                orderBy: sortOptions,
                 include: {
+                    department: {
+                        include: {
+                            head: {
+                                select: {
+                                    name: true,
+                                    surname: true,
+                                },
+                            },
+                        },
+                    },
                     headOfDepartment: true,
-                    department: true,
+                    certificates: true,
+                    events: true,
+                    eventsResponsible: true,
                 },
             });
 
-            if (filters?.gradeSort && [SortOrder.ASC, SortOrder.DESC].includes(filters.gradeSort)) {
-                this.gradeSort(filters.gradeSort, users);
-            }
-
-            return users;
+            return {
+                data: users,
+                pagination: {
+                    page,
+                    limit,
+                    totalPages,
+                    totalItems,
+                },
+            };
         } catch (err) {
             console.error(err);
             return null;
@@ -160,9 +224,7 @@ export class UsersRepository implements IUsersRepository {
         }
     }
 
-    public async findByResetPasswordToken(
-        resetPasswordToken: PasswordResetDto,
-    ): Promise<IUser | null> {
+    public async findByResetPasswordToken(resetPasswordToken: string): Promise<IUser | null> {
         try {
             return await this.prismaService.user.findUnique({
                 where: { resetPasswordToken },
@@ -173,12 +235,12 @@ export class UsersRepository implements IUsersRepository {
         }
     }
 
-    public async update(uuid: string, user: Partial<IUser>): Promise<IUser | null> {
+    public async update(id: number, user: Partial<IUser>): Promise<IUser | null> {
         try {
-            delete user.uuid;
+            delete user.id;
 
             return await this.prismaService.user.update({
-                where: { uuid },
+                where: { id },
                 data: user,
                 include: {
                     department: true,
@@ -194,10 +256,10 @@ export class UsersRepository implements IUsersRepository {
         }
     }
 
-    public async delete(uuid: string): Promise<IUser | null> {
+    public async delete(id: number): Promise<IUser | null> {
         try {
             return await this.prismaService.user.delete({
-                where: { uuid },
+                where: { id },
                 include: {
                     department: true,
                     headOfDepartment: true,

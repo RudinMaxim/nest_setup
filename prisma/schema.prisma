@@ -2,7 +2,8 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["omitApi"]
 }
 
 datasource db {
@@ -11,130 +12,88 @@ datasource db {
 }
 
 model User {
-  uuid                 String    @id @unique @default(uuid())
-  email                String    @unique
-  phone                String    @unique
-  telegram             String    @unique
+  id                   Int           @id @default(autoincrement())
+  email                String        @unique
+  phone                String        @unique
+  telegram             String        @unique
   name                 String
-  surname              String
   avatar               String?
-  patronymic           String?
+  surname              String
   password             String
-  dateBirth            DateTime
+  patronymic           String?
+  dateBirth            DateTime      @default(now())
   education            String?
   courses              String?
-  dateStart            DateTime
-  departmentId         String
-  statusId             String    @unique
+  dateStart            DateTime      @default(now())
+  department           Department?   @relation("DepartmentMebers", fields: [departmentId], references: [id])
+  departmentId         Int?
   post                 String
-  grade                Grade
-  gender               Gender
-  dateAttestation      DateTime
-  timeZone             String?
-  role                 Role
-  statusOnboarding     String
-  isActive             Boolean
-  resetPasswordToken   String?
+  grade                Grade         @default(INTERN)
+  dateAttestation      DateTime      @default(now())
+  timeZone             String        @default("МСК")
+  role                 Role          @default(EMPLOYEE)
+  events               Event[]
+  eventsResponsible    Event[]       @relation("EventsResponsible")
+  certificates         Certificate[]
+  headOfDepartment     Department?   @relation("DepartmentHead")
+  resetPasswordToken   String?       @unique
   resetPasswordExpires DateTime?
-
-  department     Department?     @relation(fields: [departmentId], references: [uuid])
-  UserStatus     UserStatus?
-  userCompetence UserCompetence?
-  certificates   Certificate[]
-  events         Event[]         @relation("UserEvents")
-
-  @@map("users")
-}
-
-model UserStatus {
-  uuid      String    @id @unique @default(uuid())
-  userUUID  String    @unique
-  status    Status    @default(WORKING)
-  startTime DateTime?
-  endTime   DateTime?
-  user      User?     @relation(fields: [userUUID], references: [uuid])
-
-  @@map("user_statuses")
 }
 
 model Certificate {
-  uuid   String @id @unique @default(uuid())
-  userId String
-  name   String
-  path   String
-  user   User   @relation(fields: [userId], references: [uuid])
-
-  @@map("certificates")
+  id      Int    @id @default(autoincrement())
+  name    String
+  path    String @unique
+  owner   User   @relation(fields: [ownerId], references: [id])
+  ownerId Int
 }
 
 model Department {
-  uuid        String      @id @unique @default(uuid())
-  name        String
-  description String?
-  headUUID    String?     @unique
-  user        User?       @relation(fields: [headUUID], references: [uuid])
-  member      User[]
-  events      Event[]
-  competence  Competence?
-
-  @@map("departments")
-}
-
-model UserCompetence {
-  uuid           String      @id @unique @default(uuid())
-  userId         String      @unique
-  competenceId   String?
-  level          Int?
-  score          Int?
-  isEndorsements Boolean?
-  user           User        @relation(fields: [userId], references: [uuid])
-  competence     Competence? @relation(fields: [competenceId], references: [uuid])
-
-  @@map("user_competences")
-}
-
-model Competence {
-  uuid            String           @id @unique @default(uuid())
-  name            String
-  description     String?
-  departmentId    String?          @unique
-  department      Department?      @relation(fields: [departmentId], references: [uuid])
-  userCompetences UserCompetence[]
-
-  @@map("competences")
+  id           Int         @id @default(autoincrement())
+  name         String      @unique
+  description  String?
+  members      User[]      @relation("DepartmentMebers")
+  events       Event[]
+  head         User?       @relation("DepartmentHead", fields: [headId], references: [id])
+  headId       Int?        @unique
+  competence   Competence? @relation(fields: [competenceId], references: [id])
+  competenceId Int?        @unique
+  documents    Document[]  @relation("DepartmentDocuments")
 }
 
 model Event {
-  uuid         String     @id @unique @default(uuid())
+  id           Int        @id @default(autoincrement())
   name         String
   type         EventType  @default(ATTESTATION)
   dateStart    DateTime
   dateEnd      DateTime
-  result       String?
-  link         String?
-  departmentId String
-  department   Department @relation(fields: [departmentId], references: [uuid])
-  users        User[]     @relation("UserEvents")
-
-  @@map("events")
+  result       Json
+  department   Department @relation(fields: [departmentId], references: [id])
+  departmentId Int
+  members      User[]
+  responsibles User[]     @relation("EventsResponsible")
+  link         String
 }
 
-model UserDepartment {
-  userId       String
-  departmentId String
-  eventId      String?
-
-  @@id([userId, departmentId])
-  @@map("user_departments")
+model Document {
+  id           Int         @id @default(autoincrement())
+  name         String
+  path         String
+  pinned       Boolean     @default(false)
+  department   Department? @relation("DepartmentDocuments", fields: [departmentId], references: [id])
+  departmentId Int?
 }
 
-enum Status {
-  WORKING
-  BREAK
-  MEETING
-  VACATION
-  SICK_LEAVE
-  REMOTE
+model Competence {
+  id         Int         @id @default(autoincrement())
+  info       Json
+  department Department?
+}
+
+enum Role {
+  EMPLOYEE
+  ADMIN_DEPARTMENT
+  ADMIN
 }
 
 enum Grade {
@@ -145,22 +104,6 @@ enum Grade {
   SENIOR
 }
 
-enum Gender {
-  MALE
-  FEMALE
-}
-
-enum Role {
-  EMPLOYEE
-  ADMIN_DEPARTMENT
-  ADMIN
-  CEO
-}
-
 enum EventType {
   ATTESTATION
-  PRESENTATION
-  NOT_STARTED
-  IN_PROGRESS
-  COMPLETED
 }
