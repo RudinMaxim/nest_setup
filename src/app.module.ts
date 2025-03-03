@@ -6,6 +6,7 @@ import { TerminusModule } from '@nestjs/terminus';
 import { PrismaModule } from './infrastructure/prisma/prisma.module';
 import { MailerModule } from './infrastructure/mailer/mailer.module';
 import { UsersModule } from './domain/user/user.module';
+import { AuthModule } from './domain/auth/auth.module';
 
 @Module({
     imports: [
@@ -29,6 +30,7 @@ import { UsersModule } from './domain/user/user.module';
         MailerModule,
         // RedisModule,
         UsersModule,
+        AuthModule,
     ],
     exports: [
         MailerModule,

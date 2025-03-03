@@ -41,16 +41,6 @@ export function configureSwagger(app: INestApplication, configService: ConfigSer
             },
         )
         .addServer(
-            configService.get('SWAGGER_SERVER_STAGE') || 'https://stage.example.com',
-            'Production Server',
-            {
-                environment: {
-                    default: 'staging',
-                    enum: ['development', 'staging', 'production'],
-                },
-            },
-        )
-        .addServer(
             configService.get('SWAGGER_SERVER_PROD') || 'https://example.com',
             'Production Server',
             {
