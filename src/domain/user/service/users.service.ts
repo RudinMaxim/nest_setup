@@ -1,5 +1,5 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
-import { Role, User, Grade } from '@prisma/client';
+import { Role, User } from '@prisma/client';
 import { UserCreateDto } from '../dto/user-create.dto';
 import { UserEntity } from '../entities/user.entity';
 import { compare, genSalt } from 'bcryptjs';
@@ -8,30 +8,35 @@ import { PasswordUpdateDto } from '../dto/password-update.dto';
 import * as crypto from 'crypto';
 import { unlink } from 'fs';
 import { UsersRepository } from '../repositories';
-import { AuthInfo, EDITABLE_FIELDS, IUser, UserOmitOptions } from '../common';
+import { AuthInfo, EDITABLE_FIELDS, UserOmitOptions } from '../common';
 import { FilterDto, SortDto, PaginationDto, ListResponseDto } from 'src/shared/dto';
-import { UserUpdateDto } from '../dto';
+import { UserBaseDto, UserUpdateDto } from '../dto';
 import { ConfigService } from '@nestjs/config';
 
 abstract class IUsersService {
-    abstract create(dto: any, author: AuthInfo): Promise<IUser>;
-    abstract find(id: number, author?: AuthInfo): Promise<IUser>;
+    abstract create(dto: UserCreateDto, author: AuthInfo): Promise<UserBaseDto>;
+    abstract find(id: number, author?: AuthInfo): Promise<UserBaseDto>;
     abstract findMany(
+        author: AuthInfo,
         filters?: FilterDto,
         sort?: SortDto,
         pagination?: PaginationDto,
         omitOptions?: UserOmitOptions,
-    ): Promise<ListResponseDto<IUser> | null>;
-    abstract findByEmail(email: string, omitOptions?: any): Promise<IUser | null>;
-    abstract findByResetPasswordToken(token: string): Promise<IUser>;
-    abstract update(id: number, dto: any, author: AuthInfo): Promise<IUser>;
-    abstract delete(id: number, author: AuthInfo): Promise<IUser>;
+    ): Promise<ListResponseDto<UserBaseDto> | null>;
+    abstract findByEmail(email: string, omitOptions?: any): Promise<UserBaseDto | null>;
+    abstract findByResetPasswordToken(token: string): Promise<UserBaseDto>;
+    abstract update(id: number, dto: UserUpdateDto, author: AuthInfo): Promise<UserBaseDto>;
+    abstract delete(id: number, author: AuthInfo): Promise<UserBaseDto>;
     abstract comparePassword(password: string, passwordHash: string): Promise<boolean>;
     abstract setResetPasswordToken(email: string): Promise<string>;
-    abstract verifyResetPasswordToken(token: string): Promise<IUser>;
-    abstract resetPassword(dto: any): Promise<User>;
-    abstract updatePassword(dto: any): Promise<User>;
-    abstract addHostnameForUserFile(user: User | AuthInfo): void;
+    abstract verifyResetPasswordToken(token: string): Promise<UserBaseDto>;
+    abstract resetPassword(dto: any): Promise<UserBaseDto>;
+    abstract updatePassword({
+        id,
+        password,
+        newPassword,
+    }: PasswordUpdateDto & { id: User['id'] }): Promise<UserBaseDto>;
+    abstract addHostnameForUserFile(user: UserBaseDto | AuthInfo): void;
 }
 
 @Injectable()
@@ -41,7 +46,7 @@ export class UsersService implements IUsersService {
         private readonly configService: ConfigService,
     ) {}
 
-    async create(user: UserCreateDto, author: AuthInfo): Promise<User> {
+    async create(user: UserCreateDto, author: AuthInfo): Promise<UserBaseDto> {
         const existedUser = await this.usersRepository.findByEmail(user.email);
         if (existedUser) {
             throw new HttpException('Пользователь уже существует', HttpStatus.BAD_REQUEST);
@@ -71,7 +76,7 @@ export class UsersService implements IUsersService {
         return createdUser;
     }
 
-    async find(id: number, author?: AuthInfo): Promise<IUser> {
+    async find(id: number, author?: AuthInfo): Promise<UserBaseDto> {
         const foundUser = await this.usersRepository.find(
             id,
             this.getOmitOptionsByRole(author?.role),
@@ -89,47 +94,43 @@ export class UsersService implements IUsersService {
         return foundUser;
     }
 
-    async findAllAndFilter(filters?: any, author?: AuthInfo): Promise<User[]> {
-        const omitOptions = this.getOmitOptionsByRole(author?.role);
-        const searchFields: string[] = ['name', 'surname', 'patronymic', 'post'];
-
-        if (author.role === Role.ADMIN && filters?.search?.toUpperCase() in Grade) {
-            searchFields.push('grade');
-            filters.search = filters.search.toUpperCase();
+    async findMany(
+        author: AuthInfo,
+        filters?: FilterDto,
+        sort?: SortDto,
+        pagination?: PaginationDto,
+        omitOptions?: UserOmitOptions,
+    ): Promise<ListResponseDto<UserBaseDto>> {
+        if (author.role === Role.ADMIN_DEPARTMENT && author.departmentId) {
+            filters = {
+                ...filters,
+                fields: {
+                    ...filters?.fields,
+                    departmentId: { operator: 'eq', value: author.departmentId },
+                },
+            };
         }
 
-        // При попытке получить инфу о грейдах, админ отдела принудительно получит инфу только о своем отделе
-        if (author.role === Role.ADMIN_DEPARTMENT) {
-            if (!('departmentId' in filters) && 'gradeSort' in filters) {
-                filters.departmentId = author.departmentId;
-            }
-        }
-
-        // При попытке сотрудником применить фильтры к грейдам, эти фильтры будут удалены перед запросом к БД
         if (author.role === Role.EMPLOYEE) {
-            delete filters.gradeSort;
+            delete filters?.fields?.grade;
         }
 
-        const foundUsers = await this.usersRepository.findAllAndFilter(
-            filters,
-            omitOptions,
-            searchFields,
-        );
+        const users = await this.usersRepository.findMany(filters, sort, pagination, omitOptions);
 
-        if (!foundUsers) {
+        if (!users?.data?.length) {
             throw new HttpException('Users not found!', HttpStatus.NOT_FOUND);
         }
 
-        foundUsers.forEach((user) => {
+        users.data.forEach((user: UserBaseDto) => {
             this.omitFieldsByAuthor(user, author);
             this.addHostnameForUserFile(user);
             this.normalizeUserDateBirth(user, author);
         });
 
-        return foundUsers;
+        return users;
     }
 
-    async findByEmail(email: string, omitOptions?: UserOmitOptions): Promise<IUser> {
+    async findByEmail(email: string, omitOptions?: UserOmitOptions): Promise<UserBaseDto> {
         const foundUser = await this.usersRepository.findByEmail(email, omitOptions);
 
         if (!foundUser) throw new HttpException('User is not found!', HttpStatus.NOT_FOUND);
@@ -140,7 +141,7 @@ export class UsersService implements IUsersService {
         return foundUser;
     }
 
-    async findByResetPasswordToken(token: string): Promise<IUser> {
+    async findByResetPasswordToken(token: string): Promise<UserBaseDto> {
         const foundUser = await this.usersRepository.findByResetPasswordToken(token);
 
         if (!foundUser) throw new HttpException('User is not found!', HttpStatus.NOT_FOUND);
@@ -148,8 +149,9 @@ export class UsersService implements IUsersService {
         return foundUser;
     }
 
-    async update(id: number, dto: UserUpdateDto, author: AuthInfo): Promise<IUser> {
+    async update(id: number, dto: UserUpdateDto, author: AuthInfo): Promise<UserBaseDto> {
         const targetUser = await this.usersRepository.find(id);
+
         if (!targetUser) throw new HttpException('User to update not found!', HttpStatus.NOT_FOUND);
 
         if (author.role === Role.ADMIN_DEPARTMENT) {
@@ -179,7 +181,7 @@ export class UsersService implements IUsersService {
         return updatedUser;
     }
 
-    async delete(id: number, author: AuthInfo): Promise<User> {
+    async delete(id: number, author: AuthInfo): Promise<UserBaseDto> {
         if (author.role === Role.ADMIN_DEPARTMENT) {
             const targetUser = await this.usersRepository.find(id);
             if (targetUser?.departmentId !== author.departmentId) {
@@ -229,7 +231,7 @@ export class UsersService implements IUsersService {
         return token;
     }
 
-    async verifyResetPasswordToken(token: string): Promise<User> {
+    async verifyResetPasswordToken(token: string): Promise<UserBaseDto> {
         const foundUser = await this.findByResetPasswordToken(token);
         const resetPasswordExpires = foundUser.resetPasswordExpires?.getTime();
 
@@ -252,7 +254,7 @@ export class UsersService implements IUsersService {
         return foundUser;
     }
 
-    async resetPassword({ token, password }: PasswordResetDto): Promise<User> {
+    async resetPassword({ token, password }: PasswordResetDto): Promise<UserBaseDto> {
         const verifiedUser = await this.verifyResetPasswordToken(token);
 
         const newUser = new UserEntity(verifiedUser);
@@ -279,8 +281,10 @@ export class UsersService implements IUsersService {
         id,
         password,
         newPassword,
-    }: PasswordUpdateDto & { id: User['id'] }): Promise<User> {
+    }: PasswordUpdateDto & { id: User['id'] }): Promise<UserBaseDto> {
         const foundUser = await this.usersRepository.find(id, { password: false });
+
+        if (!foundUser) throw new HttpException('User is not found!', HttpStatus.NOT_FOUND);
 
         await this.comparePassword(password, foundUser.password);
 
@@ -308,13 +312,13 @@ export class UsersService implements IUsersService {
         user.avatar = `${this.configService.get('HOSTNAME')}/${user.avatar}`;
     }
 
-    private normalizeUserDateBirth(user: IUser, author?: IUser | AuthInfo) {
+    private normalizeUserDateBirth(user: UserBaseDto, author?: AuthInfo) {
         if (user.id !== author?.id) {
             user.dateBirth.setFullYear(new Date().getFullYear());
         }
     }
 
-    private getOmitOptionsByRole(role: IUser['role'] = Role.EMPLOYEE): UserOmitOptions {
+    private getOmitOptionsByRole(role: UserBaseDto['role'] = Role.EMPLOYEE): UserOmitOptions {
         return {
             grade: role === Role.EMPLOYEE,
             telegram: role === Role.EMPLOYEE,
@@ -365,13 +369,14 @@ export class UsersService implements IUsersService {
         return userData;
     }
 
-    private omitFieldsByAuthor(user: IUser, author: IUser | AuthInfo): void {
+    private omitFieldsByAuthor(user: UserBaseDto, author: UserBaseDto | AuthInfo): void {
         const omitByRole: Record<Role, VoidFunction> = {
             [Role.EMPLOYEE]: () => {},
             [Role.ADMIN_DEPARTMENT]: () => {
                 if (user.departmentId !== author.departmentId) {
-                    delete user.grade;
-                    delete user.telegram;
+                    const partialUser = user as Partial<UserBaseDto>;
+                    delete partialUser.grade;
+                    delete partialUser.telegram;
                 }
             },
             [Role.ADMIN]: () => {},

@@ -2,23 +2,31 @@ import { Injectable } from '@nestjs/common';
 import { UserEntity } from '../entities/user.entity';
 import { Grade, Prisma, User } from '@prisma/client';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
-import { FilterDto, SortOrder, PaginationDto, ListResponseDto, SortDto } from '../../../shared/dto';
+import {
+    FilterDto,
+    SortOrder,
+    PaginationDto,
+    ListResponseDto,
+    SortDto,
+    FilterKeyFields,
+} from '../../../shared/dto';
 import { IUser, UserOmitOptions } from '../common';
+import { UserBaseDto } from '../dto';
 
 abstract class IUsersRepository {
-    abstract create(user: UserEntity): Promise<IUser | null>;
-    abstract find(id: number, omitOptions?: UserOmitOptions): Promise<IUser | null>;
-    abstract findByEmail(email: string, omitOptions?: UserOmitOptions): Promise<IUser | null>;
+    abstract create(user: UserEntity): Promise<UserBaseDto | null>;
+    abstract find(id: number, omitOptions?: UserOmitOptions): Promise<UserBaseDto | null>;
+    abstract findByEmail(email: string, omitOptions?: UserOmitOptions): Promise<UserBaseDto | null>;
     abstract findMany(
         filters?: FilterDto,
         sort?: SortDto,
         pagination?: PaginationDto,
         omitOptions?: UserOmitOptions,
-    ): Promise<ListResponseDto<IUser> | null>;
-    abstract findByResetPasswordToken(resetPasswordToken: string): Promise<IUser | null>;
-    abstract update(id: number, user: Partial<IUser>): Promise<IUser | null>;
-    abstract delete(id: number): Promise<IUser | null>;
-    abstract gradeSort(sort: SortOrder, users: IUser[]): IUser[];
+    ): Promise<ListResponseDto<UserBaseDto | null>>;
+    abstract findByResetPasswordToken(resetPasswordToken: string): Promise<UserBaseDto | null>;
+    abstract update(id: number, user: Partial<UserBaseDto>): Promise<UserBaseDto | null>;
+    abstract delete(id: number): Promise<UserBaseDto | null>;
+    abstract gradeSort(sort: SortOrder, users: UserBaseDto[]): IUser[];
 }
 
 // TODO: Добавить логер
@@ -36,7 +44,7 @@ export class UsersRepository implements IUsersRepository {
         {} as Record<Grade, number>,
     );
 
-    public async create(user: UserEntity): Promise<User | null> {
+    public async create(user: UserEntity): Promise<UserBaseDto | null> {
         try {
             return await this.prismaService.user.create({
                 data: {
@@ -57,7 +65,7 @@ export class UsersRepository implements IUsersRepository {
         }
     }
 
-    public async find(id: number, omitOptions?: UserOmitOptions): Promise<IUser | null> {
+    public async find(id: number, omitOptions?: UserOmitOptions): Promise<UserBaseDto | null> {
         try {
             return await this.prismaService.user.findFirst({
                 where: { id },
@@ -85,7 +93,7 @@ export class UsersRepository implements IUsersRepository {
         }
     }
 
-    public gradeSort = (sort: SortOrder, users: IUser[]): IUser[] => {
+    public gradeSort = (sort: SortOrder, users: UserBaseDto[]): IUser[] => {
         if (sort === SortOrder.ASC) {
             users.sort((a, b) => this.gradeToNumber[a.grade] - this.gradeToNumber[b.grade]);
         } else {
@@ -100,119 +108,145 @@ export class UsersRepository implements IUsersRepository {
         sort?: SortDto,
         pagination?: PaginationDto,
         omitOptions?: UserOmitOptions,
-    ): Promise<ListResponseDto<IUser> | null> {
+    ): Promise<ListResponseDto<UserBaseDto>> {
         try {
-            const where: Prisma.UserWhereInput = {};
-
-            if (filters?.search) {
-                where['OR'] = [
-                    { name: { contains: filters.search, mode: 'insensitive' } },
-                    { surname: { contains: filters.search, mode: 'insensitive' } },
-                    { email: { contains: filters.search, mode: 'insensitive' } },
-                ];
-            }
-
-            if (filters?.fields) {
-                Object.entries(filters.fields).forEach(([field, fieldFilter]) => {
-                    if (fieldFilter.value !== undefined) {
-                        switch (fieldFilter.operator) {
-                            case 'eq':
-                                where[field] = { equals: fieldFilter.value };
-                                break;
-                            case 'ne':
-                                where[field] = { not: { equals: fieldFilter.value } };
-                                break;
-                            case 'gt':
-                                where[field] = { gt: fieldFilter.value };
-                                break;
-                            case 'lt':
-                                where[field] = { lt: fieldFilter.value };
-                                break;
-                            case 'gte':
-                                where[field] = { gte: fieldFilter.value };
-                                break;
-                            case 'lte':
-                                where[field] = { lte: fieldFilter.value };
-                                break;
-                            case 'in':
-                                where[field] = {
-                                    in: Array.isArray(fieldFilter.value)
-                                        ? fieldFilter.value
-                                        : [fieldFilter.value],
-                                };
-                                break;
-                            case 'nin':
-                                where[field] = {
-                                    notIn: Array.isArray(fieldFilter.value)
-                                        ? fieldFilter.value
-                                        : [fieldFilter.value],
-                                };
-                                break;
-                            case 'like':
-                                where[field] = { contains: fieldFilter.value, mode: 'insensitive' };
-                                break;
-                            default:
-                                where[field] = { equals: fieldFilter.value };
-                        }
-                    }
-                });
-            }
-
-            let orderBy: Prisma.UserOrderByWithRelationInput = {};
-
-            if (sort?.field) {
-                orderBy = { [sort.field]: sort.order };
-            } else {
-                orderBy = { surname: SortOrder.DESC };
-            }
+            const where: Prisma.UserWhereInput = this.buildWhereClause(filters);
+            const orderBy: Prisma.UserOrderByWithRelationInput = this.buildOrderByClause(sort);
 
             const page = pagination?.page || 1;
             const limit = pagination?.limit || 10;
             const skip = (page - 1) * limit;
 
-            const totalItems = await this.prismaService.user.count({ where });
-            const totalPages = Math.ceil(totalItems / limit);
-
-            const users = await this.prismaService.user.findMany({
-                where,
-                orderBy,
-                skip,
-                take: limit,
-                omit: omitOptions,
-                include: {
-                    department: {
-                        include: {
-                            head: {
-                                select: {
-                                    name: true,
-                                    surname: true,
+            const [totalItems, data] = await Promise.all([
+                this.prismaService.user.count({ where }),
+                this.prismaService.user.findMany({
+                    where,
+                    orderBy,
+                    skip,
+                    take: limit,
+                    omit: omitOptions,
+                    include: {
+                        department: {
+                            include: {
+                                head: {
+                                    select: {
+                                        name: true,
+                                        surname: true,
+                                    },
                                 },
                             },
                         },
+                        headOfDepartment: true,
+                        certificates: true,
+                        events: true,
+                        eventsResponsible: true,
                     },
-                    headOfDepartment: true,
-                    certificates: true,
-                    events: true,
-                    eventsResponsible: true,
-                },
-            });
+                }),
+            ]);
 
             return {
-                data: users,
+                data,
                 pagination: {
                     page,
                     limit,
-                    totalPages,
+                    totalPages: Math.ceil(totalItems / limit),
                     totalItems,
                 },
             };
         } catch (err) {
             console.error(err);
-            return null;
+            return {
+                data: [],
+                pagination: {
+                    page: 0,
+                    limit: 0,
+                    totalItems: 0,
+                    totalPages: 0,
+                },
+            };
         }
     }
 
-    public async findByEmail(email: string, omitOptions?: UserOmitOptions): Promise<IUser | null> {
+    // ! TODO: Починить типы
+    private buildWhereClause(filters?: FilterDto): Prisma.UserWhereInput {
+        const where: Prisma.UserWhereInput = {};
+
+        if (filters?.search) {
+            where.OR = [
+                { name: { contains: filters.search, mode: 'insensitive' } },
+                { surname: { contains: filters.search, mode: 'insensitive' } },
+                { email: { contains: filters.search, mode: 'insensitive' } },
+            ];
+        }
+
+        if (filters?.fields) {
+            Object.entries(filters.fields).forEach(([field, fieldFilter]) => {
+                if (fieldFilter.value !== undefined) {
+                    switch (fieldFilter.operator) {
+                        case 'eq':
+                            // @ts-ignore
+                            where[field] = { equals: fieldFilter.value };
+                            break;
+                        case 'ne':
+                            // @ts-ignore
+                            where[field] = { not: { equals: fieldFilter.value } };
+                            break;
+                        case 'gt':
+                            // @ts-ignore
+                            where[field] = { gt: fieldFilter.value };
+                            break;
+                        case 'lt':
+                            // @ts-ignore
+                            where[field] = { lt: fieldFilter.value };
+                            break;
+                        case 'gte':
+                            // @ts-ignore
+                            where[field] = { gte: fieldFilter.value };
+                            break;
+                        case 'lte':
+                            // @ts-ignore
+                            where[field] = { lte: fieldFilter.value };
+                            break;
+                        case 'in':
+                            // @ts-ignore
+                            where[field] = {
+                                in: Array.isArray(fieldFilter.value)
+                                    ? fieldFilter.value
+                                    : [fieldFilter.value],
+                            };
+                            break;
+                        case 'nin':
+                            // @ts-ignore
+                            where[field] = {
+                                notIn: Array.isArray(fieldFilter.value)
+                                    ? fieldFilter.value
+                                    : [fieldFilter.value],
+                            };
+                            break;
+                        case 'like':
+                            // @ts-ignore
+                            where[field] = { contains: fieldFilter.value, mode: 'insensitive' };
+                            break;
+                        default:
+                            // @ts-ignore
+                            where[field] = { equals: fieldFilter.value };
+                    }
+                }
+            });
+        }
+
+        return where;
+    }
+
+    private buildOrderByClause(sort?: SortDto): Prisma.UserOrderByWithRelationInput {
+        if (!sort?.field) return { surname: 'desc' };
+        return { [sort.field]: sort.order };
+    }
+
+    public async findByEmail(
+        email: string,
+        omitOptions?: UserOmitOptions,
+    ): Promise<UserBaseDto | null> {
         try {
             return await this.prismaService.user.findUnique({
                 where: { email },
@@ -224,7 +258,7 @@ export class UsersRepository implements IUsersRepository {
         }
     }
 
-    public async findByResetPasswordToken(resetPasswordToken: string): Promise<IUser | null> {
+    public async findByResetPasswordToken(resetPasswordToken: string): Promise<UserBaseDto | null> {
         try {
             return await this.prismaService.user.findUnique({
                 where: { resetPasswordToken },
@@ -235,7 +269,7 @@ export class UsersRepository implements IUsersRepository {
         }
     }
 
-    public async update(id: number, user: Partial<IUser>): Promise<IUser | null> {
+    public async update(id: number, user: Partial<IUser>): Promise<UserBaseDto | null> {
         try {
             delete user.id;
 
@@ -256,7 +290,7 @@ export class UsersRepository implements IUsersRepository {
         }
     }
 
-    public async delete(id: number): Promise<IUser | null> {
+    public async delete(id: number): Promise<UserBaseDto | null> {
         try {
             return await this.prismaService.user.delete({
                 where: { id },

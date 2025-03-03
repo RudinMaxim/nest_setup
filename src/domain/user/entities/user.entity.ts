@@ -65,45 +65,4 @@ export class UserEntity implements Omit<User, 'password'> {
     async setPassword(password: string, salt: string): Promise<void> {
         this.password = await hash(password, salt);
     }
-
-    /**
-     * Проверяет, является ли пользователь администратором
-     * @returns {boolean}
-     */
-    isAdmin(): boolean {
-        return this.role === 'ADMIN';
-    }
-
-    /**
-     * Проверяет, является ли пользователь администратором департамента
-     * @returns {boolean}
-     */
-    isDepartmentAdmin(): boolean {
-        return this.role === 'ADMIN_DEPARTMENT';
-    }
-
-    /**
-     * Проверяет, имеет ли пользователь какие-либо административные права
-     * @returns {boolean}
-     */
-    hasAdminRights(): boolean {
-        return this.isAdmin() || this.isDepartmentAdmin();
-    }
-
-    /**
-     * Проверяет, имеет ли пользователь определенный уровень грейда или выше
-     * @param {Grade} grade - Грейд для сравнения
-     * @returns {boolean}
-     */
-    hasGradeOrHigher(grade: Grade): boolean {
-        const gradeOrder: Record<Grade, number> = {
-            INTERN: 0,
-            JUNIOR: 1,
-            MIDDLE: 2,
-            MIDDLE_PLUS: 3,
-            SENIOR: 4,
-        };
-
-        return gradeOrder[this.grade] >= gradeOrder[grade];
-    }
 }

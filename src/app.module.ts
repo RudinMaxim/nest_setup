@@ -4,7 +4,6 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { LoggerModule } from './shared/logger/logger.module';
 import { TerminusModule } from '@nestjs/terminus';
 import { PrismaModule } from './infrastructure/prisma/prisma.module';
-import { RedisModule } from './infrastructure/redis/redis.module';
 import { MailerModule } from './infrastructure/mailer/mailer.module';
 import { UsersModule } from './domain/user/user.module';
 
@@ -28,9 +27,13 @@ import { UsersModule } from './domain/user/user.module';
         LoggerModule,
         PrismaModule,
         MailerModule,
-        RedisModule,
+        // RedisModule,
         UsersModule,
     ],
-    exports: [RedisModule, MailerModule, PrismaModule],
+    exports: [
+        MailerModule,
+        PrismaModule,
+        // RedisModule,
+    ],
 })
 export class AppModule {}

@@ -35,6 +35,9 @@ async function bootstrap(): Promise<void> {
         });
     }
 
+    const port = configService.get<number>('PORT') || 3000;
+    await app.listen(port);
+
     if (configService.get('SWAGGER_ENABLED') === 'true') {
         configureSwagger(app, configService);
         logger.log(
@@ -42,8 +45,6 @@ async function bootstrap(): Promise<void> {
         );
     }
 
-    const port = configService.get<number>('PORT') || 3000;
-    await app.listen(port);
     logger.log(`Application is running on: ${await app.getUrl()}`);
 }
 

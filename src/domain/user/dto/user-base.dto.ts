@@ -101,5 +101,5 @@ export class UserBaseDto extends BaseDto implements User {
     @ApiPropertyOptional()
     @IsOptional()
     @IsString()
-    departmentId: number;
+    departmentId: number | null;
 }

@@ -2,15 +2,25 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsOptional, IsString, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 
+export type FilterOperator = 'eq' | 'ne' | 'gt' | 'lt' | 'gte' | 'lte' | 'in' | 'nin' | 'like';
+export type FilterValue =
+    | string
+    | number
+    | boolean
+    | Date
+    | Array<string | number | boolean | Date>;
+
+export type FilterKeyFields = string | number | symbol;
+
 export class FilterFieldDto {
     @ApiProperty({ required: false, example: 'eq' })
     @IsOptional()
     @IsString()
-    operator?: 'eq' | 'ne' | 'gt' | 'lt' | 'gte' | 'lte' | 'in' | 'nin' | 'like';
+    operator?: FilterOperator;
 
     @ApiProperty({ required: false })
     @IsOptional()
-    value?: unknown;
+    value?: FilterValue;
 }
 
 export class FilterDto {
@@ -33,5 +43,5 @@ export class FilterDto {
     @IsOptional()
     @ValidateNested()
     @Type(() => FilterFieldDto)
-    fields?: Record<string, FilterFieldDto>;
+    fields?: Record<FilterKeyFields, FilterFieldDto>;
 }

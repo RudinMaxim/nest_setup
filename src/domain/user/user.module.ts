@@ -3,8 +3,10 @@ import { UsersService } from './service';
 import { UsersRepository } from './repositories';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
+    imports: [ConfigModule],
     controllers: [UsersController],
     providers: [UsersService, UsersRepository, PrismaService],
     exports: [UsersService],
