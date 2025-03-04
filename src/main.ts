@@ -44,7 +44,7 @@ async function bootstrap(): Promise<void> {
     logger.log(`✨ Application is running on: ${await app.getUrl()} 🚀`);
     if (configService.get('SWAGGER_ENABLED') === 'true') {
         logger.log(
-            `✨ Swagger documentation is available at: http://localhost:3000/${configService.get('SWAGGER_PATH')} 🚀`,
+            `✨ Swagger documentation is available at: ${await app.getUrl()}/${configService.get('SWAGGER_PATH')} 🚀`,
         );
     }
 }
