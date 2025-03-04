@@ -7,6 +7,7 @@ import { PrismaModule } from './infrastructure/prisma/prisma.module';
 import { MailerModule } from './infrastructure/mailer/mailer.module';
 import { UsersModule } from './domain/user/user.module';
 import { AuthModule } from './domain/auth/auth.module';
+import { GoogleSheetsModule } from './infrastructure/google-sheets/google-sheets.module';
 
 @Module({
     imports: [
@@ -28,6 +29,7 @@ import { AuthModule } from './domain/auth/auth.module';
         LoggerModule,
         PrismaModule,
         MailerModule,
+        GoogleSheetsModule,
         // RedisModule,
         UsersModule,
         AuthModule,

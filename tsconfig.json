@@ -19,6 +19,8 @@
         "strictFunctionTypes": true,
         "strictBindCallApply": true,
         "noImplicitAny": true,
-        "noFallthroughCasesInSwitch": false
+        "noFallthroughCasesInSwitch": false,
+        "typeRoots": ["node_modules/@types"],
+        "types": ["node"]
     }
 }
