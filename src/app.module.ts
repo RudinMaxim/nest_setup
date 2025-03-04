@@ -10,6 +10,9 @@ import { AuthModule } from './domain/auth/auth.module';
 import { GoogleSheetsModule } from './infrastructure/google-sheets/google-sheets.module';
 import { DepartmentModule } from './domain/department/department.module';
 import { DocumentsModule } from './domain/documents/documents.module';
+import { UploadModule } from './shared/upload/upload.module';
+import { ServeStaticModule } from '@nestjs/serve-static/dist';
+import { join } from 'path';
 
 @Module({
     imports: [
@@ -27,6 +30,21 @@ import { DocumentsModule } from './domain/documents/documents.module';
                 },
             ],
         }),
+        ServeStaticModule.forRootAsync({
+            imports: [ConfigModule],
+            inject: [ConfigService],
+            useFactory: (configService: ConfigService) => {
+                const uploadDir = configService.get<string>('UPLOAD_DIR') ?? 'uploads';
+                return [
+                    {
+                        rootPath: join(process.cwd(), uploadDir),
+                        serveRoot: '/uploads',
+                        exclude: ['/api/(.*)'],
+                    },
+                ];
+            },
+        }),
+        UploadModule,
         TerminusModule,
         LoggerModule,
         PrismaModule,

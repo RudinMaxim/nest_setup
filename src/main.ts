@@ -41,11 +41,11 @@ async function bootstrap(): Promise<void> {
     if (configService.get('SWAGGER_ENABLED') === 'true') {
         configureSwagger(app, configService);
         logger.log(
-            `Swagger documentation is available at: ${await app.getUrl()}/${configService.get('SWAGGER_PATH')}`,
+            `✨ Swagger documentation is available at: ${await app.getUrl()}/${configService.get('SWAGGER_PATH')} 🚀`,
         );
     }
 
-    logger.log(`Application is running on: ${await app.getUrl()}`);
+    logger.log(`✨ Application is running on: ${await app.getUrl()} 🚀`);
 }
 
 export const boot = bootstrap();
