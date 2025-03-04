@@ -36,17 +36,7 @@ export function configureSwagger(app: INestApplication, configService: ConfigSer
             {
                 environment: {
                     default: 'development',
-                    enum: ['development', 'staging', 'production'],
-                },
-            },
-        )
-        .addServer(
-            configService.get('SWAGGER_SERVER_PROD') || 'https://example.com',
-            'Production Server',
-            {
-                environment: {
-                    default: 'production',
-                    enum: ['development', 'staging', 'production'],
+                    enum: ['development'],
                 },
             },
         )

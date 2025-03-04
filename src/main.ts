@@ -35,17 +35,18 @@ async function bootstrap(): Promise<void> {
         });
     }
 
-    const port = configService.get<number>('PORT') || 3000;
-    await app.listen(port);
-
     if (configService.get('SWAGGER_ENABLED') === 'true') {
         configureSwagger(app, configService);
-        logger.log(
-            `✨ Swagger documentation is available at: ${await app.getUrl()}/${configService.get('SWAGGER_PATH')} 🚀`,
-        );
     }
 
+    const port = configService.get<number>('PORT') || 3000;
+    await app.listen(port);
     logger.log(`✨ Application is running on: ${await app.getUrl()} 🚀`);
+    if (configService.get('SWAGGER_ENABLED') === 'true') {
+        logger.log(
+            `✨ Swagger documentation is available at: http://localhost:3000/${configService.get('SWAGGER_PATH')} 🚀`,
+        );
+    }
 }
 
 export const boot = bootstrap();
