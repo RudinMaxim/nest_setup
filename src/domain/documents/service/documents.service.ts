@@ -1,9 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Document } from '@prisma/client';
-import { DocumentEntity } from '../entities/document.entity';
-import { DocumentsRepository } from '../repositories/documents.repository';
+import { DocumentEntity, DocumentFilters } from '../common';
+import { DocumentsRepository } from '../repositories';
 import { DocumentCreateDto, DocumentUpdateDto } from '../dto';
-import { DocumentFilters } from '../common';
 
 export abstract class IDocumentsService {
     abstract create(dto: DocumentCreateDto): Promise<Document | null>;

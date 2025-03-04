@@ -1,5 +1,5 @@
 import { IsString } from 'class-validator';
-import { PasswordDto } from 'src/domain/common/dto/password.dto';
+import { PasswordDto } from '../../common';
 
 export class PasswordResetDto extends PasswordDto {
     @IsString({ message: 'Token is wrong!' })

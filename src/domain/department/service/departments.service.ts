@@ -1,9 +1,9 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
-import { DepartmentCreateDto } from '../dto/department-create.dto';
-import { DepartmentEntity } from '../entities/department.entity';
+import { DepartmentCreateDto } from '../dto';
+import { DepartmentEntity } from '../common';
 import { DepartmentsRepository } from '../repository';
 import { DepartmentBaseDto, DepartmentUpdateDto } from '../dto';
-import { FilterDto, ListResponseDto, PaginationDto, SortDto } from 'src/shared/dto';
+import { FilterDto, ListResponseDto, PaginationDto, SortDto } from '../../../shared/dto';
 
 abstract class IDepartmentsService {
     abstract create(dto: DepartmentCreateDto): Promise<DepartmentBaseDto>;

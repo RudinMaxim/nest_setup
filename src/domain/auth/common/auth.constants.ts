@@ -6,4 +6,4 @@ export const EXCLUDED_PATHS = [
     '/google-sheets',
     '/uploads',
     '/users/format',
-];
+] as const;

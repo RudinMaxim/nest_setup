@@ -1,9 +1,8 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { Department, Prisma } from '@prisma/client';
 import { PrismaService } from 'src/infrastructure/prisma/prisma.service';
-import { DepartmentList } from '../common';
-import { DepartmentEntity } from '../entities';
-import { FilterDto, ListResponseDto, PaginationDto, SortDto } from 'src/shared/dto';
+import { DepartmentList, DepartmentEntity } from '../common';
+import { FilterDto, ListResponseDto, PaginationDto, SortDto } from '../../../shared/dto';
 import { DepartmentBaseDto } from '../dto';
 
 export abstract class IDepartmentsRepository {

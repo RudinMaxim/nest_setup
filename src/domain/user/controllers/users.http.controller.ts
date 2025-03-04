@@ -29,7 +29,7 @@ import {
 } from '@nestjs/swagger';
 import { Role } from '@prisma/client';
 
-import { ApiResponseDto, ListResponseDto, QueryParamsDto } from 'src/shared/dto';
+import { ApiResponseDto, ListResponseDto, QueryParamsDto } from '../../../shared/dto';
 import { AuthInfo, MIN_PASSWORD_LENGTH } from '../common';
 import {
     UserCreateDto,
@@ -39,7 +39,7 @@ import {
     PasswordUpdateDto,
 } from '../dto';
 import { UsersService } from '../service';
-import { GetAuthInfo, Roles, RolesGuard } from 'src/domain/common';
+import { GetAuthInfo, Roles, RolesGuard } from '../../common';
 
 // @ts-ignore
 interface FileWithPath extends Express.Multer.File {

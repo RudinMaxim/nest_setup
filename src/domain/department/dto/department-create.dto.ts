@@ -1,5 +1,5 @@
 import { Department } from '@prisma/client';
-import { DepartmentBaseDto } from './department-base.dto';
+import { DepartmentBaseDto } from '.';
 import { IsInt, IsOptional } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 

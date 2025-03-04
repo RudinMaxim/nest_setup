@@ -1,16 +1,18 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { Role, User } from '@prisma/client';
-import { UserCreateDto } from '../dto/user-create.dto';
-import { UserEntity } from '../entities/user.entity';
+import {
+    UserCreateDto,
+    PasswordResetDto,
+    PasswordUpdateDto,
+    UserBaseDto,
+    UserUpdateDto,
+} from '../dto';
 import { compare, genSalt } from 'bcryptjs';
-import { PasswordResetDto } from '../dto/password-reset.dto';
-import { PasswordUpdateDto } from '../dto/password-update.dto';
 import * as crypto from 'crypto';
 import { unlink } from 'fs';
 import { UsersRepository } from '../repositories';
-import { AuthInfo, EDITABLE_FIELDS, UserOmitOptions } from '../common';
+import { AuthInfo, EDITABLE_FIELDS, UserOmitOptions, UserEntity } from '../common';
 import { FilterDto, SortDto, PaginationDto, ListResponseDto } from 'src/shared/dto';
-import { UserBaseDto, UserUpdateDto } from '../dto';
 import { ConfigService } from '@nestjs/config';
 
 abstract class IUsersService {

@@ -12,10 +12,10 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBody, ApiResponse, ApiQuery, ApiParam } from '@nestjs/swagger';
 import { Role } from '@prisma/client';
-import { Roles, RolesGuard } from 'src/domain/common';
+import { Roles, RolesGuard } from '../../common';
 import { DepartmentCreateDto, DepartmentUpdateDto } from '../dto';
 import { DepartmentsService } from '../service';
-import { QueryParamsDto } from 'src/shared/dto';
+import { QueryParamsDto } from '../../../shared/dto';
 
 @ApiTags('Отделы')
 @Controller('departments')

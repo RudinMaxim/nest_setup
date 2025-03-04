@@ -1,9 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsOptional, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
-import { PaginationDto } from './pagination.dto';
-import { FilterDto } from './filter.dto';
-import { SortDto } from './sort.dto';
+import { PaginationDto, FilterDto, SortDto } from '.';
 
 export class QueryParamsDto {
     @ApiProperty({ required: false, type: PaginationDto })

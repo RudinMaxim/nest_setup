@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { DocumentEntity } from '../entities/document.entity';
+import { DocumentEntity, DocumentFilters } from '../common';
 import { Document, Prisma } from '@prisma/client';
-import { PrismaService } from 'src/infrastructure/prisma/prisma.service';
-import { DocumentFilters } from '../common';
+import { PrismaService } from '../../../infrastructure/prisma';
 
 @Injectable()
 export class DocumentsRepository {

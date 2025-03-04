@@ -2,7 +2,7 @@ import { IsString, IsEmail, IsOptional, IsDate, IsEnum } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Grade, Role, User } from '@prisma/client';
-import { BaseDto } from 'src/shared/dto';
+import { BaseDto } from '../../../shared/dto';
 
 export class UserBaseDto extends BaseDto implements User {
     @ApiProperty()

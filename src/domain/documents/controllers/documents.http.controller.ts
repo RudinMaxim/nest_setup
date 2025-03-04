@@ -13,10 +13,10 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { Role } from '@prisma/client';
-import { Roles } from 'src/domain/common';
+import { Roles } from '../../common';
 import { DocumentFilters } from '../common';
 import { DocumentCreateDto, DocumentUpdateDto } from '../dto';
-import { DocumentsService } from '../service/documents.service';
+import { DocumentsService } from '../service';
 
 @ApiTags('Документы')
 @Controller('documents')

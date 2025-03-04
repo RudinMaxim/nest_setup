@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { UserEntity } from '../entities/user.entity';
 import { Grade, Prisma } from '@prisma/client';
-import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
+import { PrismaService } from '../../../infrastructure/prisma';
 import { FilterDto, SortOrder, PaginationDto, ListResponseDto, SortDto } from '../../../shared/dto';
-import { IUser, UserOmitOptions } from '../common';
+import { IUser, UserOmitOptions, UserEntity } from '../common';
 import { UserBaseDto } from '../dto';
 
 abstract class IUsersRepository {

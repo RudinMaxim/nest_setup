@@ -1,5 +1,5 @@
 import { Controller, Post } from '@nestjs/common';
-import { GoogleSheetsService } from '../service/google-sheets.service';
+import { GoogleSheetsService } from '../service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 abstract class IGoogleSheetsController {

@@ -11,14 +11,13 @@ import {
     HttpException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
-import { AuthDto } from '../dto/auth.dto';
-import { PasswordForgotDto } from '../dto/password-forgot.dto';
+import { AuthDto, PasswordForgotDto } from '../dto';
 import { ConfigService } from '@nestjs/config';
-import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../guards';
 import { Request, Response } from 'express';
-import { UsersService } from 'src/domain/user/service';
-import { MailerService } from 'src/infrastructure/mailer/mailer.service';
 import { AuthService } from '../services';
+import { UsersService } from '../common';
+import { MailerService } from '../../../infrastructure/mailer';
 
 @ApiTags('Авторизация')
 @Controller()

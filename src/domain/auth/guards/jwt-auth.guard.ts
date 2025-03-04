@@ -1,7 +1,7 @@
 import { Injectable, ExecutionContext } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Reflector } from '@nestjs/core';
-import { EXCLUDED_PATHS } from '../common/auth.constants';
+import { EXCLUDED_PATHS } from '../common';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
@@ -9,7 +9,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
         super();
     }
 
-    canActivate(context: ExecutionContext) {
+    public canActivate(context: ExecutionContext) {
         const request = context.switchToHttp().getRequest<Request>();
 
         const isExcludedPath = EXCLUDED_PATHS.some((path) => request.url?.startsWith(path));

@@ -1,11 +1,11 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
-import { configureSwagger } from './shared/swagger/swagger.config';
-import { LoggerService } from './shared/logger/logger.service';
 import helmet from 'helmet';
-import { HttpExceptionFilter } from './domain/common/filters/http-exception.filter';
+import { AppModule } from './app.module';
+import { configureSwagger } from './shared/swagger';
+import { LoggerService } from './shared/logger';
+import { HttpExceptionFilter } from './shared/filters';
 
 async function bootstrap(): Promise<void> {
     const app = await NestFactory.create(AppModule, {

@@ -1,5 +1,5 @@
 import { Document } from '@prisma/client';
-import { BaseDto } from 'src/shared/dto';
+import { BaseDto } from '../../../shared/dto';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsBoolean, IsNotEmpty, IsOptional, IsString, IsNumber } from 'class-validator';
 

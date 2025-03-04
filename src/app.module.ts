@@ -1,18 +1,18 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { ThrottlerModule } from '@nestjs/throttler';
-import { LoggerModule } from './shared/logger/logger.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
 import { TerminusModule } from '@nestjs/terminus';
-import { PrismaModule } from './infrastructure/prisma/prisma.module';
-import { MailerModule } from './infrastructure/mailer/mailer.module';
-import { UsersModule } from './domain/user/user.module';
-import { AuthModule } from './domain/auth/auth.module';
-import { GoogleSheetsModule } from './infrastructure/google-sheets/google-sheets.module';
-import { DepartmentModule } from './domain/department/department.module';
-import { DocumentsModule } from './domain/documents/documents.module';
-import { UploadModule } from './shared/upload/upload.module';
-import { ServeStaticModule } from '@nestjs/serve-static/dist';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { join } from 'path';
+import { AuthModule } from './domain/auth';
+import { DepartmentModule } from './domain/department';
+import { DocumentsModule } from './domain/documents';
+import { UsersModule } from './domain/user';
+import { GoogleSheetsModule } from './infrastructure/google-sheets';
+import { MailerModule } from './infrastructure/mailer';
+import { PrismaModule } from './infrastructure/prisma';
+import { LoggerModule } from './shared/logger';
+import { UploadModule } from './shared/upload';
 
 @Module({
     imports: [

@@ -1,2 +1,2 @@
-export * from './departments.constants';
 export * from './departments.type';
+export * from './department.entity';

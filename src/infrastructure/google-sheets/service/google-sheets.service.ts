@@ -4,7 +4,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { google, sheets_v4 } from 'googleapis';
 import { Grade } from '@prisma/client';
-import { UsersRepository } from 'src/domain/user/repositories';
+import { UsersRepository } from '../../../domain/user';
 
 abstract class IGoogleSheetsService {
     abstract load: () => Promise<void>;
