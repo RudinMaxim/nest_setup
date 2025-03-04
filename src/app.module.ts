@@ -8,6 +8,8 @@ import { MailerModule } from './infrastructure/mailer/mailer.module';
 import { UsersModule } from './domain/user/user.module';
 import { AuthModule } from './domain/auth/auth.module';
 import { GoogleSheetsModule } from './infrastructure/google-sheets/google-sheets.module';
+import { DepartmentModule } from './domain/department/department.module';
+import { DocumentsModule } from './domain/documents/documents.module';
 
 @Module({
     imports: [
@@ -33,6 +35,8 @@ import { GoogleSheetsModule } from './infrastructure/google-sheets/google-sheets
         // RedisModule,
         UsersModule,
         AuthModule,
+        DepartmentModule,
+        DocumentsModule,
     ],
     exports: [
         MailerModule,
