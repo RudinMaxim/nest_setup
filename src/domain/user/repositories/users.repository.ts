@@ -1,15 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { UserEntity } from '../entities/user.entity';
-import { Grade, Prisma, User } from '@prisma/client';
+import { Grade, Prisma } from '@prisma/client';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
-import {
-    FilterDto,
-    SortOrder,
-    PaginationDto,
-    ListResponseDto,
-    SortDto,
-    FilterKeyFields,
-} from '../../../shared/dto';
+import { FilterDto, SortOrder, PaginationDto, ListResponseDto, SortDto } from '../../../shared/dto';
 import { IUser, UserOmitOptions } from '../common';
 import { UserBaseDto } from '../dto';
 
