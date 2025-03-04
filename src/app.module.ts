@@ -37,6 +37,7 @@ import { GoogleSheetsModule } from './infrastructure/google-sheets/google-sheets
     exports: [
         MailerModule,
         PrismaModule,
+        LoggerModule,
         // RedisModule,
     ],
 })

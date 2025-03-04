@@ -41,6 +41,7 @@ import {
 import { UsersService } from '../service';
 import { GetAuthInfo, Roles, RolesGuard } from 'src/domain/common';
 
+// @ts-ignore
 interface FileWithPath extends Express.Multer.File {
     path: string;
 }
@@ -66,6 +67,7 @@ export class UsersController {
     @ApiResponse({ status: 422, description: 'Ошибка обработки данных' })
     async create(
         @Body() body: UserCreateDto,
+        // @ts-ignore
         @UploadedFiles() files: { avatar: Express.Multer.File[] | undefined },
         @GetAuthInfo() authInfo: AuthInfo,
     ): Promise<UserBaseDto> {
@@ -224,6 +226,7 @@ export class UsersController {
     async update(
         @Param('id', ParseIntPipe) id: number,
         @Body() body: UserUpdateDto,
+        // @ts-ignore
         @UploadedFiles() files: { avatar?: Express.Multer.File[] },
         @GetAuthInfo() authInfo: AuthInfo,
     ): Promise<UserBaseDto> {
