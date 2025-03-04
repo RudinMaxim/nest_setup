@@ -1,8 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional } from 'class-validator';
+import { IsInt, IsOptional } from 'class-validator';
 
 export class BaseDto {
     @ApiProperty({ required: false })
+    @IsInt()
     id: number;
 
     @ApiProperty({ required: false, readOnly: true })
