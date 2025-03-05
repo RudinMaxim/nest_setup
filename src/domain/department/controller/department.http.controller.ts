@@ -20,7 +20,7 @@ import { QueryParamsDto } from '../../../shared/dto';
 @ApiTags('Отделы')
 @Controller('departments')
 export class DepartmentsController {
-    constructor(private readonly departmentsService: DepartmentsService) {}
+    constructor(private readonly departmentsService: DepartmentsService) { }
 
     @Post('/')
     @Roles(Role.ADMIN)
@@ -62,7 +62,7 @@ export class DepartmentsController {
     @ApiResponse({ status: 200, description: 'Список отделов.' })
     @ApiResponse({ status: 404, description: 'Отделы не найдены.' })
     async findAllAndFilter(@Query() query: QueryParamsDto) {
-        return this.departmentsService.findMany(query.filter, query.pagination, query.sort);
+        return this.departmentsService.findMany(query.pagination, query.sort);
     }
 
     @Get('/:id')

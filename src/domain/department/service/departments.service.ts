@@ -3,13 +3,12 @@ import { DepartmentCreateDto } from '../dto';
 import { DepartmentEntity } from '../common';
 import { DepartmentsRepository } from '../repository';
 import { DepartmentBaseDto, DepartmentUpdateDto } from '../dto';
-import { FilterDto, ListResponseDto, PaginationDto, SortDto } from '../../../shared/dto';
+import { ListResponseDto, PaginationDto, SortDto } from '../../../shared/dto';
 
 abstract class IDepartmentsService {
     abstract create(dto: DepartmentCreateDto): Promise<DepartmentBaseDto>;
     abstract find(id: number): Promise<DepartmentBaseDto>;
     abstract findMany(
-        filters?: FilterDto,
         pagination?: PaginationDto,
         sort?: SortDto,
     ): Promise<ListResponseDto<DepartmentBaseDto>>;
@@ -43,11 +42,10 @@ export class DepartmentsService implements IDepartmentsService {
     }
 
     async findMany(
-        filters?: FilterDto,
         pagination?: PaginationDto,
         sort?: SortDto,
     ): Promise<ListResponseDto<DepartmentBaseDto>> {
-        const departments = await this.departmentsRepository.findMany(filters, pagination, sort);
+        const departments = await this.departmentsRepository.findMany(pagination, sort);
 
         if (!departments || departments?.data.length === 0) {
             throw new HttpException('Departments not found!', HttpStatus.NOT_FOUND);
