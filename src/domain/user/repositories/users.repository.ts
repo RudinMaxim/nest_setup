@@ -159,7 +159,6 @@ export class UsersRepository implements IUsersRepository {
         }
     }
 
-    // ! TODO: Починить типы
     private buildWhereClause(filters?: FilterDto): Prisma.UserWhereInput {
         const where: Prisma.UserWhereInput = {};
 
@@ -173,56 +172,52 @@ export class UsersRepository implements IUsersRepository {
 
         if (filters?.fields) {
             Object.entries(filters.fields).forEach(([field, fieldFilter]) => {
+                const key = field as keyof Prisma.UserWhereInput;
                 if (fieldFilter.value !== undefined) {
+                    let condition: Prisma.UserWhereInput[typeof key];
                     switch (fieldFilter.operator) {
                         case 'eq':
-                            // @ts-ignore
-                            where[field] = { equals: fieldFilter.value };
+                            condition = { equals: fieldFilter.value } as never;
                             break;
                         case 'ne':
-                            // @ts-ignore
-                            where[field] = { not: { equals: fieldFilter.value } };
+                            condition = { not: { equals: fieldFilter.value } } as never;
                             break;
                         case 'gt':
-                            // @ts-ignore
-                            where[field] = { gt: fieldFilter.value };
+                            condition = { gt: fieldFilter.value } as never;
                             break;
                         case 'lt':
-                            // @ts-ignore
-                            where[field] = { lt: fieldFilter.value };
+                            condition = { lt: fieldFilter.value } as never;
                             break;
                         case 'gte':
-                            // @ts-ignore
-                            where[field] = { gte: fieldFilter.value };
+                            condition = { gte: fieldFilter.value } as never;
                             break;
                         case 'lte':
-                            // @ts-ignore
-                            where[field] = { lte: fieldFilter.value };
+                            condition = { lte: fieldFilter.value } as never;
                             break;
                         case 'in':
-                            // @ts-ignore
-                            where[field] = {
+                            condition = {
                                 in: Array.isArray(fieldFilter.value)
                                     ? fieldFilter.value
                                     : [fieldFilter.value],
-                            };
+                            } as never;
                             break;
                         case 'nin':
-                            // @ts-ignore
-                            where[field] = {
+                            condition = {
                                 notIn: Array.isArray(fieldFilter.value)
                                     ? fieldFilter.value
                                     : [fieldFilter.value],
-                            };
+                            } as never;
                             break;
                         case 'like':
-                            // @ts-ignore
-                            where[field] = { contains: fieldFilter.value, mode: 'insensitive' };
+                            condition = {
+                                contains: fieldFilter.value,
+                                mode: 'insensitive',
+                            } as never;
                             break;
                         default:
-                            // @ts-ignore
-                            where[field] = { equals: fieldFilter.value };
+                            condition = { equals: fieldFilter.value } as never;
                     }
+                    where[key] = condition;
                 }
             });
         }
